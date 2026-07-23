@@ -4,11 +4,13 @@
 // unset, returns { configured:false } so the UI shows a calm setup card.
 // Uses only fetch + AbortController - no agent-only deps bundled here.
 
+import { resolveAgentUrl } from '../../../../lib/agentUrl';
+
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET() {
-  const base = (process.env.BAMBU_AGENT_URL || '').trim();
+  const base = (await resolveAgentUrl()).trim();
   const secret = process.env.BAMBU_AGENT_SECRET || '';
 
   if (!base) {

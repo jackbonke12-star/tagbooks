@@ -4,11 +4,13 @@
 // FormData with the file, and forward it to the agent. Uses only web-standard
 // fetch/FormData - no agent-only deps here.
 
+import { resolveAgentUrl } from '../../../../lib/agentUrl';
+
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function POST(request) {
-  const base = (process.env.BAMBU_AGENT_URL || '').trim();
+  const base = (await resolveAgentUrl()).trim();
   const secret = process.env.BAMBU_AGENT_SECRET || '';
 
   if (!base) {

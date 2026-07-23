@@ -1,11 +1,13 @@
 // Proxy: POST /api/printer/control -> local agent POST /control.
 // Forwards { action: 'pause' | 'resume' | 'stop' }.
 
+import { resolveAgentUrl } from '../../../../lib/agentUrl';
+
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function POST(request) {
-  const base = (process.env.BAMBU_AGENT_URL || '').trim();
+  const base = (await resolveAgentUrl()).trim();
   const secret = process.env.BAMBU_AGENT_SECRET || '';
 
   if (!base) {
