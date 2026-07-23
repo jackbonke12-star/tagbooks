@@ -11,6 +11,7 @@ Next.js (App Router) + Supabase. Phones-first. Runs on port 3003.
    If you already ran `supabase.sql` before the clients update, run `migration-clients.sql` instead.
    If your database already ran `supabase.sql`/`migration-clients.sql`, run `migration-phase2.sql` to add inventory, print queue, and recurring.
    For live cross-device updates, run `migration-realtime.sql` (already included at the end of `supabase.sql` for fresh setups) to add the tables to the `supabase_realtime` publication.
+   If your database predates the Google review link on clients, run `migration-review-link.sql` to add the `google_review_url` column (already included in `supabase.sql`/`migration-clients.sql` for fresh setups).
 
 3. **Add your keys.** Copy `.env.local.example` to `.env.local` and fill in the two values
    from Supabase (Project Settings -> API):

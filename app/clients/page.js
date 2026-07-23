@@ -19,6 +19,7 @@ export default function ClientsPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [filter, setFilter] = useState('all'); // 'all' | stage value
+  const [search, setSearch] = useState('');
   const [editing, setEditing] = useState(null);
 
   const formTopRef = useRef(null);
@@ -89,9 +90,16 @@ export default function ClientsPage() {
   }, [clients]);
 
   const visible = useMemo(() => {
-    if (filter === 'all') return clients;
-    return clients.filter((c) => c.stage === filter);
-  }, [clients, filter]);
+    const q = search.trim().toLowerCase();
+    return clients.filter((c) => {
+      if (filter !== 'all' && c.stage !== filter) return false;
+      if (!q) return true;
+      const hay = `${c.business_name || ''} ${c.contact_name || ''} ${
+        c.phone || ''
+      }`.toLowerCase();
+      return hay.includes(q);
+    });
+  }, [clients, filter, search]);
 
   const today = localToday();
 
@@ -130,11 +138,50 @@ export default function ClientsPage() {
       {/* Client list */}
       <div className="card">
         <div className="card-label">Clients</div>
+
+        {/* Search: filters the already-loaded list client-side. */}
+        <div className="field client-search">
+          <input
+            type="search"
+            className="input"
+            value={search}
+            placeholder="Search name, contact, or phone"
+            inputMode="search"
+            autoComplete="off"
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          {search.trim() ? (
+            <button
+              type="button"
+              className="client-search-clear"
+              aria-label="Clear search"
+              onClick={() => setSearch('')}
+            >
+              Clear
+            </button>
+          ) : null}
+        </div>
+
+        {!loading && !loadError ? (
+          <div className="client-count muted">
+            {visible.length === 1
+              ? '1 client'
+              : `${visible.length} clients`}
+            {search.trim() || filter !== 'all'
+              ? ` of ${clients.length}`
+              : ''}
+          </div>
+        ) : null}
+
         {loadError ? <div className="form-error">{loadError}</div> : null}
         {loading ? (
           <div className="muted">Loading…</div>
         ) : visible.length === 0 ? (
-          <div className="muted">No clients here yet.</div>
+          <div className="muted">
+            {search.trim() || filter !== 'all'
+              ? 'No matches.'
+              : 'No clients here yet.'}
+          </div>
         ) : (
           <div className="client-list">
             {visible.map((client) => {
@@ -159,6 +206,16 @@ export default function ClientsPage() {
                       ) : (
                         <span className="client-sub">{client.phone}</span>
                       )
+                    ) : null}
+                    {client.google_review_url ? (
+                      <a
+                        className="review-link"
+                        href={client.google_review_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Review link
+                      </a>
                     ) : null}
                   </div>
                   <div className="client-meta">
@@ -205,6 +262,7 @@ function ClientForm({ editing, onSaved, onCancelEdit }) {
   const [address, setAddress] = useState('');
   const [stage, setStage] = useState('lead');
   const [nextFollowup, setNextFollowup] = useState('');
+  const [googleReviewUrl, setGoogleReviewUrl] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -219,6 +277,7 @@ function ClientForm({ editing, onSaved, onCancelEdit }) {
       setAddress(editing.address || '');
       setStage(editing.stage || 'lead');
       setNextFollowup(editing.next_followup || '');
+      setGoogleReviewUrl(editing.google_review_url || '');
       setNotes(editing.notes || '');
       setError('');
     }
@@ -231,6 +290,7 @@ function ClientForm({ editing, onSaved, onCancelEdit }) {
     setAddress('');
     setStage('lead');
     setNextFollowup('');
+    setGoogleReviewUrl('');
     setNotes('');
   }
 
@@ -251,6 +311,7 @@ function ClientForm({ editing, onSaved, onCancelEdit }) {
       address: address.trim() ? address.trim() : null,
       stage,
       next_followup: nextFollowup || null,
+      google_review_url: googleReviewUrl.trim() ? googleReviewUrl.trim() : null,
       notes: notes.trim() ? notes.trim() : null,
     };
 
@@ -332,6 +393,18 @@ function ClientForm({ editing, onSaved, onCancelEdit }) {
           value={address}
           placeholder="Optional"
           onChange={(e) => setAddress(e.target.value)}
+        />
+      </div>
+
+      <div className="field">
+        <label className="label">Google review link</label>
+        <input
+          type="url"
+          className="input"
+          value={googleReviewUrl}
+          inputMode="url"
+          placeholder="https://g.page/r/... (optional)"
+          onChange={(e) => setGoogleReviewUrl(e.target.value)}
         />
       </div>
 

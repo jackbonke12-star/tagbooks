@@ -10,6 +10,7 @@ create table clients (
   address text,
   stage text not null default 'lead' check (stage in ('lead', 'pitched', 'sold', 'care_plan')),
   next_followup date,
+  google_review_url text,
   notes text,
   created_at timestamptz not null default now()
 );
