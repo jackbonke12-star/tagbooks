@@ -84,9 +84,9 @@ export default function RecurringPage() {
       <div className="card">
         <div className="card-label">Active plans</div>
         {loading ? (
-          <div className="muted">Loading…</div>
+          <div className="muted load-line">Loading…</div>
         ) : active.length === 0 ? (
-          <div className="muted">No active plans.</div>
+          <div className="muted load-line">No active plans.</div>
         ) : (
           <div className="rec-list">
             {active.map((plan) => (

@@ -160,7 +160,7 @@ export default function InventoryPage() {
       <div className="card">
         <div className="card-label">Inventory</div>
         {loading ? (
-          <div className="muted">Loading…</div>
+          <div className="muted load-line">Loading…</div>
         ) : (
           <div className="inv-list">
             {ITEMS.map((it) => {
@@ -187,9 +187,9 @@ export default function InventoryPage() {
       <div className="card">
         <div className="card-label">Print queue</div>
         {loading ? (
-          <div className="muted">Loading…</div>
+          <div className="muted load-line">Loading…</div>
         ) : sortedJobs.length === 0 ? (
-          <div className="muted">No print jobs.</div>
+          <div className="muted load-line">No print jobs.</div>
         ) : (
           <div className="pq-list">
             {sortedJobs.map((job) => (

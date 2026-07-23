@@ -97,6 +97,7 @@
 .client-count {
   font-size: 13px;
   margin-top: 8px;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Clients list. */

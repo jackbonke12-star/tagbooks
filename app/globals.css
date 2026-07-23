@@ -28,6 +28,17 @@ body {
   padding: 0;
 }
 
+/* Reserve the vertical-scrollbar gutter at the root so the page width never
+   changes when content height grows/shrinks or a scrollbar toggles. This
+   eliminates horizontal jitter on load and on realtime updates. Scrolling is
+   unaffected: the root still scrolls normally. `overflow-y: scroll` is the
+   fallback for engines without scrollbar-gutter (older iOS Safari); on iOS the
+   overlay scrollbar takes no width, so no visible track appears either way. */
+html {
+  scrollbar-gutter: stable;
+  overflow-y: scroll;
+}
+
 body {
   background: var(--bg);
   color: var(--ink);
@@ -114,13 +125,18 @@ button {
 .topnav {
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 100;
   display: flex;
   align-items: flex-end;
-  gap: 12px;
+  gap: 10px;
   padding: 14px 16px 0;
+  /* Fully opaque paper so page content scrolls cleanly under the nav with no
+     bleed-through or flicker. --bg is an opaque color. */
   background: var(--bg);
   border-bottom: 2px solid var(--rule-strong);
+  /* Hold a constant nav height so it never grows/shrinks between routes or as
+     the tab labels change; content under it never lurches. */
+  min-height: 60px;
 }
 
 .topnav-brand {
@@ -129,6 +145,7 @@ button {
   text-transform: uppercase;
   font-size: 17px;
   padding-bottom: 8px;
+  white-space: nowrap;
 }
 
 .topnav-brand::before {
@@ -143,25 +160,20 @@ button {
   vertical-align: middle;
 }
 
+/* Short nav (3 tabs + More): single clean row, no scroll hack needed. */
 .topnav-links {
   display: flex;
+  align-items: flex-end;
   gap: 4px;
   margin-left: auto;
   min-width: 0;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.topnav-links::-webkit-scrollbar {
-  display: none;
 }
 
 /* Ledger index tabs: bordered paper tabs that sit on the rule. */
 .topnav-link {
   display: inline-flex;
   align-items: center;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 14px;
   border: 1px solid var(--line);
   border-bottom: none;
@@ -177,44 +189,6 @@ button {
   top: 2px;
 }
 
-/* On phones, keep brand + Sign out on row one and let the links wrap to a
-   full-width scrollable row two so the active tab is never clipped. */
-@media (max-width: 560px) {
-  .topnav {
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px 8px;
-    padding: 10px 12px 0;
-  }
-  .topnav-brand {
-    margin-right: auto;
-    padding-bottom: 0;
-    order: 0;
-  }
-  .topnav-signout {
-    order: 1;
-    flex-shrink: 0;
-    align-self: center;
-    margin-bottom: 0;
-  }
-  /* Row two: full-width scrollable strip of index tabs. */
-  .topnav-links {
-    order: 2;
-    flex-basis: 100%;
-    margin-left: 0;
-    gap: 4px;
-    padding-top: 8px;
-  }
-  .topnav-link {
-    padding: 0 12px;
-    font-size: 12px;
-    top: 1px;
-  }
-  .topnav-link.on {
-    top: 1px;
-  }
-}
-
 .topnav-link.on {
   color: var(--ink);
   background: var(--panel);
@@ -223,24 +197,102 @@ button {
   top: 3px;
 }
 
-.topnav-signout {
-  min-height: 40px;
-  align-self: center;
-  margin-bottom: 6px;
-  padding: 0 12px;
-  border-radius: 3px;
-  background: transparent;
-  border: 1px solid var(--rule-strong);
-  color: var(--ink);
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  cursor: pointer;
+/* ---- More menu ---- */
+
+.topnav-more {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-end;
 }
 
-.topnav-signout:active {
+.topnav-more-btn {
+  gap: 7px;
+  cursor: pointer;
+  font-family: var(--mono);
+}
+
+/* Down-caret drawn from borders (no emoji). Rotates up when open. */
+.topnav-caret {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+  margin-bottom: 1px;
+}
+
+.topnav-more-btn[aria-expanded="true"] .topnav-caret {
+  transform: rotate(180deg);
+}
+
+/* Paper card menu, anchored to the right edge so it never overflows. */
+.topnav-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  min-width: 168px;
+  max-width: calc(100vw - 24px);
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 18px rgba(28, 26, 21, 0.22);
+  padding: 4px;
+  overflow: hidden;
+}
+
+.topnav-menu-item {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 3px;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.topnav-menu-item:active {
   background: var(--panel2);
+}
+
+.topnav-menu-item.on {
+  background: var(--panel2);
+  box-shadow: inset 3px 0 0 var(--red);
+  color: var(--ink);
+}
+
+/* Phone tightening: keep everything on one row at 360-390px. */
+@media (max-width: 420px) {
+  .topnav {
+    gap: 8px;
+    padding: 12px 12px 0;
+  }
+  .topnav-brand {
+    font-size: 0;
+    letter-spacing: 0;
+    padding-bottom: 10px;
+  }
+  /* Keep the brand dot as a compact marker; hide the wordmark text. */
+  .topnav-brand::before {
+    margin-right: 0;
+    width: 11px;
+    height: 11px;
+  }
+  .topnav-links {
+    gap: 3px;
+  }
+  .topnav-link {
+    padding: 0 11px;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
 }
 
 /* ---------- Cards ---------- */
@@ -271,6 +323,50 @@ button {
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
+  /* Reserve one line of the figure's own height so a changing number never
+     grows/shrinks the block on realtime updates. */
+  min-height: calc(34px * 1.1);
+}
+
+/* Phones: denser cards so pages aren't so long. Keeps >=12px internal
+   padding and comfortable spacing; desktop is untouched. */
+@media (max-width: 640px) {
+  .card {
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .goal-hero {
+    padding: 16px;
+  }
+  /* Page wrappers are flex columns with their own gap; drop the redundant
+     card margin so cards aren't double-spaced, and tighten the gap. */
+  .money,
+  .clients,
+  .inventory,
+  .recurring,
+  .requests,
+  .coins,
+  .products {
+    gap: 12px;
+  }
+  .money > .card,
+  .clients > .card,
+  .inventory > .card,
+  .recurring > .card,
+  .requests > .card,
+  .coins > .card,
+  .products > .card {
+    margin-bottom: 0;
+  }
+}
+
+/* Long unbroken strings (business names, emails, notes) must never force
+   sideways scroll at 360px. */
+.card,
+.card-label,
+.big-num,
+.settle-line {
+  overflow-wrap: anywhere;
 }
 
 /* ---------- Color utilities ---------- */
@@ -461,6 +557,31 @@ button {
   color: var(--panel);
 }
 
+/* ---------- Reserved list footprints (anti-shift) ----------
+   Every page shows a "Loading…" line, then swaps in a list (or an empty
+   message). Give the swap zone a modest min-height so first paint and data
+   paint occupy comparable space and the page doesn't lurch. Applied to the
+   list containers AND the loading/empty muted line that sits in their place. */
+.entry-list,
+.client-list,
+.inv-list,
+.pq-list,
+.rec-list,
+.req-list,
+.feed-list,
+.followup-list,
+.print-waiting-list,
+.coins-grid {
+  min-height: 64px;
+}
+
+/* The "Loading…" / empty-state line sits where the list will render. Reserve
+   the same footprint so the text->list swap holds its place. `.load-line` is
+   added to each loading/empty placeholder that swaps with a list. */
+.load-line {
+  min-height: 64px;
+}
+
 /* ---------- Transaction list ---------- */
 
 .list-item {
@@ -497,6 +618,10 @@ button {
   padding: 20px;
   margin-bottom: 14px;
   box-shadow: 0 1px 0 #d8cfbb;
+  /* Reserve the hero's loaded footprint (label + big figure + meter + caption)
+     so the "Loading..." state and the loaded state occupy the same height and
+     the swap doesn't lurch the page. */
+  min-height: 160px;
 }
 
 /* Ruled meter: crisp inked frame with a faint tick down the middle. */

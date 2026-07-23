@@ -83,9 +83,10 @@ export default function CoinsPage() {
           <div className="coins-nfc-note" role="note">
             <span className="coins-nfc-note-tag">NFC</span>
             <span className="coins-nfc-note-text">
-              In-app coin writing works in Chrome on Android. On iPhone or
-              desktop, use the printed QR (any phone camera scans it) or the
-              Copy button to grab the link.
+              On iPhone: tap Copy to grab a coin&apos;s URL, then paste it into
+              the free &ldquo;NFC Tools&rdquo; app to write the coin (one time
+              per coin). In-app writing works only in Chrome on Android. The
+              printed QR still works on any phone camera.
             </span>
           </div>
         ) : null}
@@ -133,7 +134,7 @@ export default function CoinsPage() {
       </div>
 
       {loading ? (
-        <div className="card muted">Loading…</div>
+        <div className="card muted load-line">Loading…</div>
       ) : clients.length === 0 ? (
         <div className="card coins-empty">
           <div className="coins-empty-line muted">
@@ -146,7 +147,7 @@ export default function CoinsPage() {
           </div>
         </div>
       ) : visible.length === 0 ? (
-        <div className="card muted">No matches.</div>
+        <div className="card muted load-line">No matches.</div>
       ) : (
         <div className="coins-grid">
           {visible.map((client) => (

@@ -176,9 +176,9 @@ export default function ClientsPage() {
 
         {loadError ? <div className="form-error">{loadError}</div> : null}
         {loading ? (
-          <div className="muted">Loading…</div>
+          <div className="muted load-line">Loading…</div>
         ) : visible.length === 0 ? (
-          <div className="muted">
+          <div className="muted load-line">
             {search.trim() || filter !== 'all'
               ? 'No matches.'
               : 'No clients here yet.'}

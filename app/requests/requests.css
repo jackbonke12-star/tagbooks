@@ -127,7 +127,11 @@
 .req-status {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-height: 44px;
+  /* Reserve width for the longest label (Building) so tapping through
+     New -> Building -> Done never resizes the stamp or shifts the row. */
+  min-width: 78px;
   padding: 4px 12px;
   border-radius: 3px;
   font-family: var(--mono);

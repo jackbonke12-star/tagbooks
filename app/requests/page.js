@@ -128,9 +128,9 @@ export default function RequestsPage() {
         {loadError ? <div className="form-error">{loadError}</div> : null}
 
         {loading ? (
-          <div className="muted">Loading…</div>
+          <div className="muted load-line">Loading…</div>
         ) : visible.length === 0 ? (
-          <div className="muted req-empty">
+          <div className="muted req-empty load-line">
             {filter !== 'all'
               ? 'No requests here.'
               : 'No requests yet. Add the first one above.'}

@@ -270,9 +270,9 @@ export default function MoneyPage() {
         <div className="card-label">This month</div>
         {loadError ? <div className="form-error">{loadError}</div> : null}
         {loading ? (
-          <div className="muted">Loading…</div>
+          <div className="muted load-line">Loading…</div>
         ) : rows.length === 0 ? (
-          <div className="muted">No entries this month.</div>
+          <div className="muted load-line">No entries this month.</div>
         ) : (
           <div className="entry-list">
             {rows.map((entry) => (

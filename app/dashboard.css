@@ -3,7 +3,24 @@
 .dash {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
+}
+
+/* Phones: tighten the vertical rhythm so Partner Settlement, follow-ups and
+   Latest Activity are reachable with far less scrolling. Cards in .dash use
+   the flex gap for spacing, so drop their own margin to avoid double gaps. */
+@media (max-width: 640px) {
+  .dash {
+    gap: 12px;
+  }
+  .dash > .card {
+    margin-bottom: 0;
+    padding: 14px;
+  }
+  .dash > .goal-hero {
+    margin-bottom: 0;
+    padding: 16px;
+  }
 }
 
 /* Error line shared shape with money page. */
@@ -27,33 +44,83 @@
   box-shadow: inset 0 0 0 2px rgba(255, 253, 247, 0.35);
 }
 
-/* Slim callout to the products pitch screen. */
+/* Quiet secondary link to the products pitch screen (now under "More"). */
 .products-callout {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
+  font-size: 13px;
   margin-top: -4px;
-  font-size: 13px;
 }
 
-.products-callout-btn {
-  min-height: 44px;
-  padding: 0 14px;
-  font-size: 13px;
+.products-callout-link {
+  color: var(--green);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
-/* Three stat cards: 3-up on desktop, stack on phones. */
-.stat-row {
+.products-callout-link:active {
+  color: var(--ink);
+}
+
+/* Stat tiles: compact 2x2 on phones, 4-across on wide screens. Each tile is
+   a small-caps label + a value, much denser than the old full-width cards so
+   all four money numbers land in roughly one glance under the goal bar. */
+.stat-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
 }
 
-@media (max-width: 640px) {
-  .stat-row {
-    grid-template-columns: 1fr;
+@media (min-width: 700px) {
+  .stat-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.stat-tile {
+  background: var(--panel);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  box-shadow: 0 1px 0 #d8cfbb;
+  min-width: 0;
+  /* Hold a constant tile height so a changing money figure (realtime) never
+     grows or shrinks the tile. Label row + one value line + padding. */
+  min-height: 72px;
+}
+
+.stat-tile-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-tile-value {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+  /* Reserve one figure line so the value's own box never changes height as the
+     number updates. */
+  min-height: calc(22px * 1.1);
+}
+
+@media (min-width: 700px) {
+  .stat-tile-value {
+    min-height: calc(26px * 1.1);
+  }
+}
+
+@media (min-width: 700px) {
+  .stat-tile-value {
+    font-size: 26px;
   }
 }
 

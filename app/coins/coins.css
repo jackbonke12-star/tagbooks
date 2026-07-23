@@ -80,6 +80,7 @@
 
 .coins-count {
   font-size: 13px;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Quiet one-time platform note shown when in-app NFC writing is unavailable
@@ -234,7 +235,16 @@
   font-size: 14px;
 }
 
-/* Status lines read as small ledger stamps under the button. */
+/* Status lines read as small ledger stamps under the button. Share a stable
+   footprint with the idle hint so swapping between hint and status never
+   resizes the coin card. */
+.coin-stamp,
+.coin-nfc .coin-hint {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+}
+
 .coin-stamp {
   font-family: var(--mono);
   font-size: 12px;
@@ -271,6 +281,11 @@
   .coins-head,
   .coins-empty {
     display: none !important;
+  }
+
+  html {
+    overflow-y: visible;
+    scrollbar-gutter: auto;
   }
 
   body {

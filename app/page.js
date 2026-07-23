@@ -248,36 +248,26 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* STAT CARDS */}
-      <div className="stat-row">
-        <div className="card">
-          <div className="card-label">Revenue</div>
-          <div className="big-num green">{money(revenue)}</div>
+      {/* STAT TILES - compact 2x2 grid on phones, 4-across on wide. */}
+      <div className="stat-grid">
+        <div className="stat-tile">
+          <div className="stat-tile-label">Revenue</div>
+          <div className="stat-tile-value green">{money(revenue)}</div>
         </div>
-        <div className="card">
-          <div className="card-label">Expenses</div>
-          <div className="big-num red">{money(expenseTotal)}</div>
+        <div className="stat-tile">
+          <div className="stat-tile-label">Expenses</div>
+          <div className="stat-tile-value red">{money(expenseTotal)}</div>
         </div>
-        <div className="card">
-          <div className="card-label">Profit</div>
-          <div className={`big-num ${profit >= 0 ? 'green' : 'red'}`}>
+        <div className="stat-tile">
+          <div className="stat-tile-label">Profit</div>
+          <div className={`stat-tile-value ${profit >= 0 ? 'green' : 'red'}`}>
             {money(profit)}
           </div>
         </div>
-      </div>
-
-      {/* MRR */}
-      <div className="card">
-        <div className="card-label">Monthly recurring</div>
-        <div className="big-num green">{money(mrr)}</div>
-      </div>
-
-      {/* PITCH SCREEN LINK */}
-      <div className="products-callout">
-        <span className="muted">Showing a client?</span>
-        <Link className="btn btn-ghost products-callout-btn" href="/products">
-          View products
-        </Link>
+        <div className="stat-tile">
+          <div className="stat-tile-label">Monthly recurring</div>
+          <div className="stat-tile-value green">{money(mrr)}</div>
+        </div>
       </div>
 
       {/* PRINT QUEUE - WAITING */}
@@ -303,6 +293,14 @@ export default function DashboardPage() {
           <span>Jack paid {money(settlement.jack)}</span>
           <span>Jackson paid {money(settlement.jackson)}</span>
         </div>
+      </div>
+
+      {/* PITCH SCREEN LINK - quiet secondary link (Products lives under More). */}
+      <div className="products-callout muted">
+        Showing a client?{' '}
+        <Link className="products-callout-link" href="/products">
+          Open pitch screen
+        </Link>
       </div>
 
       {/* LATEST ACTIVITY */}
