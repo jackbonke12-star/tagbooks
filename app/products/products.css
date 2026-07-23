@@ -159,6 +159,25 @@
   }
 }
 
+/* On phones, ease the pinned-in tilts so a rotated full-width exhibit can't
+   poke past the card edge and trigger sideways scroll. */
+@media (max-width: 480px) {
+  .exhibit-tilt-0,
+  .exhibit-tilt-2 {
+    transform: rotate(-0.75deg);
+  }
+  .exhibit-tilt-1 {
+    transform: rotate(1deg);
+  }
+  .exhibit-hero {
+    transform: rotate(-1deg);
+  }
+  /* Give the framed hero a little breathing room from the corner stamp. */
+  .price-hero {
+    right: 0;
+  }
+}
+
 /* ---------- Ledger price list ---------- */
 
 .pricelist {
@@ -176,7 +195,8 @@
 .price-name {
   font-weight: 600;
   color: var(--ink);
-  white-space: nowrap;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* Leader dots fill the gap between name and price. */

@@ -34,6 +34,13 @@ body {
   font-family: var(--mono);
   -webkit-font-smoothing: antialiased;
   line-height: 1.5;
+  /* Never let a page scroll sideways on a phone. */
+  overflow-x: hidden;
+}
+
+/* iOS: keep tap highlights subtle and text un-inflated on rotate. */
+* {
+  -webkit-text-size-adjust: 100%;
 }
 
 /* Numbers read as ledger figures everywhere. */
@@ -469,6 +476,18 @@ button {
   border-bottom: none;
 }
 
+/* Long, unbroken business names / notes / emails must never force sideways
+   scroll. Applies to the flexible text columns across list rows. */
+.entry-main,
+.client-main,
+.rec-main,
+.pq-main,
+.followup-main,
+.inv-main {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 /* ---------- Goal hero ---------- */
 
 .goal-hero {
@@ -514,6 +533,15 @@ button {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 14px;
+}
+
+/* Prev/next month arrows: square, thumb-sized tap targets. */
+.month-nav .btn {
+  min-width: 56px;
+  padding: 0 14px;
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 /* ---------- Login ---------- */

@@ -120,9 +120,31 @@
 }
 
 .client-actions .btn {
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 14px;
   font-size: 14px;
+}
+
+/* On phones, drop the meta column (follow-up date + actions) below the client
+   details so nothing gets squeezed or pushed off the card edge. */
+@media (max-width: 480px) {
+  .client-row {
+    flex-wrap: wrap;
+  }
+  .client-main {
+    flex: 1 1 100%;
+  }
+  .client-meta {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 8px;
+    gap: 12px;
+  }
+  .client-actions {
+    margin-top: 0;
+  }
 }
 
 /* ---------- Stage chips (rubber stamps) ---------- */

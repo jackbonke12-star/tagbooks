@@ -1,7 +1,7 @@
 'use client';
 
 import './inventory.css';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useRealtime } from '../../lib/realtime';
 import { ITEMS, itemLabel, shortDate } from '../../lib/catalog';
@@ -54,6 +54,27 @@ export default function InventoryPage() {
   const adjust = useCallback(
     async (row, delta) => {
       const next = Math.max(0, Number(row.quantity || 0) + delta);
+      if (next === Number(row.quantity || 0)) return;
+      // Optimistic update.
+      setInventory((prev) =>
+        prev.map((r) => (r.id === row.id ? { ...r, quantity: next } : r))
+      );
+      const { error } = await supabase
+        .from('inventory')
+        .update({ quantity: next })
+        .eq('id', row.id);
+      if (error) {
+        setLoadError(error.message || 'Failed to update quantity.');
+        load();
+      }
+    },
+    [load]
+  );
+
+  const setQuantity = useCallback(
+    async (row, value) => {
+      const next = Math.max(0, Math.floor(Number(value)));
+      if (!Number.isFinite(next)) return;
       if (next === Number(row.quantity || 0)) return;
       // Optimistic update.
       setInventory((prev) =>
@@ -149,30 +170,13 @@ export default function InventoryPage() {
                 quantity: 0,
               };
               return (
-                <div className="inv-row" key={it.value}>
-                  <div className="inv-main">
-                    <span className="inv-name">{it.label}</span>
-                  </div>
-                  <div className="inv-controls">
-                    <button
-                      type="button"
-                      className="btn btn-ghost inv-step"
-                      onClick={() => adjust(row, -1)}
-                      aria-label={`Decrease ${it.label}`}
-                    >
-                      −
-                    </button>
-                    <span className="big-num">{Number(row.quantity || 0)}</span>
-                    <button
-                      type="button"
-                      className="btn btn-ghost inv-step"
-                      onClick={() => adjust(row, 1)}
-                      aria-label={`Increase ${it.label}`}
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
+                <InvRow
+                  key={it.value}
+                  label={it.label}
+                  row={row}
+                  onAdjust={adjust}
+                  onSet={setQuantity}
+                />
               );
             })}
           </div>
@@ -222,6 +226,89 @@ export default function InventoryPage() {
         )}
 
         <AddJobForm onSaved={load} onError={setLoadError} />
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Inventory row ---------------- */
+
+// One inventory item: [-] [ editable number ] [+].
+// - The +/- buttons operate on the committed prop value (onAdjust by ±1).
+// - The number input keeps local text state so the user can type an absolute
+//   value; it commits to Supabase on blur AND on Enter (onSet), clamped to a
+//   non-negative integer. Empty/invalid input reverts to the last known value.
+// - A `focusedRef` guards against realtime clobber: while the field is being
+//   edited we do NOT sync the incoming prop over the user's in-progress text.
+function InvRow({ label, row, onAdjust, onSet }) {
+  const committed = Number(row.quantity || 0);
+  const [draft, setDraft] = useState(String(committed));
+  const focusedRef = useRef(false);
+
+  // Sync from props only when not actively editing, so realtime / +/- updates
+  // are reflected but never overwrite what the user is typing.
+  useEffect(() => {
+    if (!focusedRef.current) setDraft(String(committed));
+  }, [committed]);
+
+  function commit() {
+    const trimmed = draft.trim();
+    const parsed = Math.floor(Number(trimmed));
+    if (trimmed === '' || !Number.isFinite(parsed)) {
+      // Invalid: revert to last known committed value, no write.
+      setDraft(String(committed));
+      return;
+    }
+    const next = Math.max(0, parsed);
+    setDraft(String(next));
+    onSet(row, next);
+  }
+
+  return (
+    <div className="inv-row">
+      <div className="inv-main">
+        <span className="inv-name">{label}</span>
+      </div>
+      <div className="inv-controls">
+        <button
+          type="button"
+          className="btn btn-ghost inv-step"
+          onClick={() => onAdjust(row, -1)}
+          aria-label={`Decrease ${label}`}
+        >
+          −
+        </button>
+        <input
+          type="number"
+          inputMode="numeric"
+          min="0"
+          step="1"
+          className="inv-qty"
+          value={draft}
+          aria-label={`${label} quantity`}
+          onFocus={() => {
+            focusedRef.current = true;
+          }}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={() => {
+            focusedRef.current = false;
+            commit();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              e.currentTarget.blur();
+            }
+          }}
+        />
+        <button
+          type="button"
+          className="btn btn-ghost inv-step"
+          onClick={() => onAdjust(row, 1)}
+          aria-label={`Increase ${label}`}
+        >
+          +
+        </button>
       </div>
     </div>
   );

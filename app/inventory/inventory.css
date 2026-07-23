@@ -78,6 +78,54 @@
   padding: 0;
   font-size: 24px;
   font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Editable quantity: on-theme ledger input, big + thumb-friendly, centered
+   tabular figures. Sits between the − and + steppers. */
+.inv-qty {
+  width: 64px;
+  min-width: 0;
+  height: 48px;
+  min-height: 48px;
+  padding: 0 6px;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  outline: none;
+  -moz-appearance: textfield;
+  appearance: textfield;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Strip the native number spinners so the field reads as a clean ledger cell. */
+.inv-qty::-webkit-outer-spin-button,
+.inv-qty::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.inv-qty:focus {
+  border-color: var(--ink);
+  background: #fffdf7;
+  box-shadow: inset 0 -2px 0 var(--ink);
+}
+
+/* Very narrow phones (~360px): tighten the control group so it never
+   overflows the card with the item name alongside. */
+@media (max-width: 380px) {
+  .inv-controls {
+    gap: 8px;
+  }
+  .inv-qty {
+    width: 56px;
+  }
 }
 
 /* Print queue. */

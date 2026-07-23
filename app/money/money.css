@@ -70,10 +70,28 @@
   margin-top: 4px;
 }
 
-/* On narrow screens let the amount + actions wrap under the description. */
+/* On narrow screens let the amount + actions wrap under the description so the
+   Edit/Delete buttons never push the row past the card edge. */
 @media (max-width: 480px) {
+  .entry-list .list-item {
+    flex-wrap: wrap;
+  }
+  .entry-list .entry-main {
+    flex: 1 1 100%;
+  }
   .entry-list .entry-right {
+    gap: 10px;
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 6px;
+  }
+  .entry-list .entry-actions {
     gap: 8px;
+  }
+  /* Compact the Edit/Delete buttons so both fit comfortably on one line. */
+  .entry-list .entry-actions .btn {
+    padding: 0 14px;
+    font-size: 13px;
   }
 }
 
