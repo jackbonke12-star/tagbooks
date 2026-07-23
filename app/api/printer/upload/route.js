@@ -10,6 +10,13 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function POST(request) {
+  // Shared-PIN gate: if APP_PIN is set, require a matching x-app-pin header.
+  // If APP_PIN is unset, the gate is unconfigured and the check is skipped.
+  const appPin = (process.env.APP_PIN || '').trim();
+  if (appPin && (request.headers.get('x-app-pin') || '').trim() !== appPin) {
+    return Response.json({ error: 'unauthorized' }, { status: 401 });
+  }
+
   const base = (await resolveAgentUrl()).trim();
   const secret = process.env.BAMBU_AGENT_SECRET || '';
 

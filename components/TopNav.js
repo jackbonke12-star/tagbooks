@@ -48,6 +48,16 @@ export default function TopNav() {
     setTheme(next);
   }
 
+  // Clear the stored PIN and reload so PinGate re-prompts for it.
+  function lock() {
+    try {
+      localStorage.removeItem('tagbooks-pin');
+    } catch {
+      // Ignore storage failures; the reload below still re-runs the gate.
+    }
+    window.location.reload();
+  }
+
   const isDash = pathname === '/';
   const isMoney = matches(pathname, '/money');
   const isClients = matches(pathname, '/clients');
@@ -136,6 +146,15 @@ export default function TopNav() {
           suppressHydrationWarning
         >
           {theme == null ? 'Theme' : theme === 'dark' ? 'Light' : 'Dark'}
+        </button>
+
+        <button
+          type="button"
+          className="topnav-link topnav-theme"
+          onClick={lock}
+          aria-label="Lock and require PIN"
+        >
+          Lock
         </button>
       </div>
     </nav>

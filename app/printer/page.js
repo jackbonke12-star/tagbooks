@@ -4,6 +4,18 @@ import './printer.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { SPOOLS, spoolPrice } from '../../lib/spoolConfig';
 
+// Read the shared PIN from localStorage at call time (SSR-safe). Sent as the
+// x-app-pin header so the printer API routes authorize the proxied request.
+function pinHeaders() {
+  if (typeof window === 'undefined') return {};
+  try {
+    const pin = localStorage.getItem('tagbooks-pin');
+    return pin ? { 'x-app-pin': pin } : {};
+  } catch {
+    return {};
+  }
+}
+
 // Bambu gcode_state -> big status stamp label.
 const STATE_LABEL = {
   IDLE: 'IDLE',
@@ -31,7 +43,10 @@ export default function PrinterPage() {
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch('/api/printer/status', { cache: 'no-store' });
+      const res = await fetch('/api/printer/status', {
+        cache: 'no-store',
+        headers: { ...pinHeaders() },
+      });
       const data = await res.json();
       setStatus(data);
     } catch {
@@ -63,7 +78,7 @@ export default function PrinterPage() {
       try {
         const res = await fetch('/api/printer/control', {
           method: 'POST',
-          headers: { 'content-type': 'application/json' },
+          headers: { 'content-type': 'application/json', ...pinHeaders() },
           body: JSON.stringify({ action }),
         });
         const data = await res.json();
@@ -263,6 +278,7 @@ function SendFilePanel() {
       body.append('file', file, file.name);
       const res = await fetch('/api/printer/upload', {
         method: 'POST',
+        headers: { ...pinHeaders() },
         body,
         cache: 'no-store',
       });
