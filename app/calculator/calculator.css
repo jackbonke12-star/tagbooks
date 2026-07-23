@@ -1,0 +1,123 @@
+/* Cost calculator: paper-ledger form + ruled money breakdown. Rigid layout
+   with reserved footprints so live recompute never shifts anything. */
+
+.calculator {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 640px) {
+  .calculator {
+    gap: 12px;
+  }
+  .calculator > .card {
+    margin-bottom: 0;
+  }
+}
+
+/* Spool swatch sits inline before the select without breaking its width. */
+.calc-spool-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.calc-spool-row .select {
+  flex: 1;
+  min-width: 0;
+}
+
+.calc-swatch {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 3px;
+  border: 1px solid var(--rule-strong);
+}
+
+/* Small helper text under grouped inputs. */
+.calc-hint {
+  margin: -6px 0 14px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* ---------- Ledger breakdown ---------- */
+
+.calc-ledger {
+  font-variant-numeric: tabular-nums;
+}
+
+.calc-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 34px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.calc-line:last-child {
+  border-bottom: none;
+}
+
+.calc-line-label {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.calc-line-amt {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* Double rule under Total cost, accounting-style. */
+.calc-line-total {
+  border-bottom: 3px double var(--rule-strong);
+}
+
+.calc-line-total .calc-line-label {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* Cost per unit reads as the headline figure. */
+.calc-line-strong .calc-line-label {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.calc-line-strong .calc-line-amt {
+  font-size: 18px;
+}
+
+.calc-batch-note {
+  padding-top: 10px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Profit block keeps a reserved height so typing a price in/out never lurches
+   the card. Holds ~3 ruled lines' worth of space. */
+.calc-profit {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  min-height: 150px;
+}
+
+.calc-profit-empty {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.calc-footnote {
+  margin-top: 14px;
+  font-size: 12px;
+  line-height: 1.4;
+}
