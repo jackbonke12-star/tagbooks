@@ -1,0 +1,369 @@
+/* Places (door-to-door hit list) styles. Tokens from globals.css. */
+
+.places {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Error line (shared shape with clients / money / dashboard). */
+.form-error {
+  background: rgba(163, 51, 34, 0.08);
+  border-left: 3px solid var(--red);
+  color: var(--red);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+/* Add/edit form layout (shared shape with clients). */
+.add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.add-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+@media (max-width: 640px) {
+  .add-form .grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+@media (max-width: 640px) {
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+  .form-actions .btn {
+    width: 100%;
+  }
+}
+
+/* ---------- Intro header ---------- */
+.places-intro {
+  /* Reserve the header footprint so nothing shifts on first paint. */
+  min-height: 96px;
+}
+
+.places-title {
+  margin: 2px 0 6px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.places-lede {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* ---------- Target ideas quick-fill ---------- */
+.target-ideas {
+  padding-top: 14px;
+}
+
+.idea-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  /* Reserve two comfortable rows so the row doesn't reflow the page. */
+  min-height: 88px;
+  align-content: flex-start;
+}
+
+.idea-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--panel2);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+
+.idea-chip:active {
+  transform: scale(0.98);
+  background: var(--panel);
+}
+
+/* ---------- Status filter ---------- */
+.status-filter {
+  flex-wrap: wrap;
+}
+
+.status-filter button {
+  flex: 1 1 auto;
+  min-width: 20%;
+}
+
+/* Status seg inside the edit form: allow wrapping (5 stamps). */
+.status-seg {
+  flex-wrap: wrap;
+}
+
+.status-seg button {
+  flex: 1 1 auto;
+  min-width: 33%;
+}
+
+/* ---------- Search box ---------- */
+.place-search {
+  position: relative;
+  margin-top: 4px;
+}
+
+.place-search .input {
+  width: 100%;
+  font-size: 16px;
+  padding-right: 64px;
+}
+
+.place-search-clear {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  min-height: 32px;
+  padding: 0 10px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.place-search-clear:hover {
+  color: var(--ink, inherit);
+}
+
+.place-count {
+  font-size: 13px;
+  margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- List ---------- */
+.place-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+  /* Anti-shift: hold a footprint through load/realtime swaps. */
+  min-height: 64px;
+}
+
+.place-row {
+  align-items: flex-start;
+}
+
+.place-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.place-name {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.place-sub {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.place-stamps {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Directions: 44px tap target, green stamp-link. */
+.place-directions {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 14px;
+  margin-top: 2px;
+  border: 2px solid var(--green);
+  border-radius: 3px;
+  color: var(--green);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  white-space: nowrap;
+  transform: rotate(-1.5deg);
+}
+
+.place-directions:hover {
+  background: rgba(43, 122, 76, 0.08);
+}
+
+.place-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.place-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.place-actions .btn {
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+/* Small 'Skip' control (sets status to skip). */
+.place-skip {
+  min-height: 32px;
+  padding: 0 8px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.place-skip:hover {
+  color: var(--red);
+}
+
+/* On phones, drop the meta column below the details. */
+@media (max-width: 480px) {
+  .place-row {
+    flex-wrap: wrap;
+  }
+  .place-main {
+    flex: 1 1 100%;
+  }
+  .place-meta {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 8px;
+    gap: 12px;
+  }
+}
+
+/* ---------- Priority chips (rubber stamps) ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: 2px 9px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 2px solid currentColor;
+  background: transparent;
+  color: var(--muted);
+  transform: rotate(-3deg);
+}
+
+.prio-high {
+  color: var(--red);
+  transform: rotate(2deg);
+}
+
+.prio-medium {
+  color: var(--rule-strong);
+  transform: rotate(-2deg);
+}
+
+.prio-low {
+  color: var(--muted);
+  opacity: 0.65;
+  transform: rotate(1deg);
+}
+
+/* ---------- Status stamps (tap to advance) ---------- */
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 2px 10px;
+  border-radius: 3px;
+  border: 2px solid currentColor;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transform: rotate(-2deg);
+  transition: transform 0.05s ease;
+}
+
+.stamp:active {
+  transform: rotate(-2deg) scale(0.96);
+}
+
+.stamp-to_visit {
+  color: var(--muted);
+}
+
+.stamp-visited {
+  color: var(--rule-strong);
+  transform: rotate(1deg);
+}
+
+.stamp-pitched {
+  color: var(--green-dim);
+  transform: rotate(-1deg);
+}
+
+.stamp-won {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--panel);
+  transform: rotate(1deg);
+}
+
+.stamp-skip {
+  color: var(--red-dim);
+  transform: rotate(2deg);
+}

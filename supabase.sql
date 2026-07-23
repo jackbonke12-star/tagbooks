@@ -105,6 +105,19 @@ create table requests (
   created_at timestamptz not null default now()
 );
 
+-- ---------- Prospects (Places: door-to-door hit list) ----------
+create table prospects (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  business_type text,
+  city text,
+  address text,
+  priority text default 'medium' check (priority in ('high', 'medium', 'low')),
+  status text default 'to_visit' check (status in ('to_visit', 'visited', 'pitched', 'won', 'skip')),
+  notes text,
+  created_at timestamptz not null default now()
+);
+
 -- ---------- Indexes ----------
 create index sales_date_idx on sales (date);
 create index expenses_date_idx on expenses (date);
@@ -122,6 +135,7 @@ alter table inventory enable row level security;
 alter table print_queue enable row level security;
 alter table recurring enable row level security;
 alter table requests enable row level security;
+alter table prospects enable row level security;
 
 -- Clients policies (select / insert / update / delete for authenticated users).
 create policy "clients_select" on clients for select to anon, authenticated using (true);
@@ -165,6 +179,12 @@ create policy "requests_insert" on requests for insert to anon, authenticated wi
 create policy "requests_update" on requests for update to anon, authenticated using (true) with check (true);
 create policy "requests_delete" on requests for delete to anon, authenticated using (true);
 
+-- Prospects policies (select / insert / update / delete for authenticated users).
+create policy "prospects_select" on prospects for select to anon, authenticated using (true);
+create policy "prospects_insert" on prospects for insert to anon, authenticated with check (true);
+create policy "prospects_update" on prospects for update to anon, authenticated using (true) with check (true);
+create policy "prospects_delete" on prospects for delete to anon, authenticated using (true);
+
 -- ---------- Realtime ----------
 -- Supabase Realtime only streams changes for tables in the supabase_realtime
 -- publication. Add each table so open devices update live without a refresh.
@@ -176,6 +196,7 @@ alter publication supabase_realtime add table inventory;
 alter publication supabase_realtime add table print_queue;
 alter publication supabase_realtime add table recurring;
 alter publication supabase_realtime add table requests;
+alter publication supabase_realtime add table prospects;
 
 -- ---------------------------------------------------------------------------
 -- Grants: allow the API roles (anon, authenticated) to use the public tables.
