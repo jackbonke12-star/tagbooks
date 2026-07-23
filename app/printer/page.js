@@ -209,6 +209,147 @@ function StatusPanel({ status, connected, unreachable, acting, actionError, onCo
           Stop
         </button>
       </div>
+
+      <SendFilePanel />
+    </div>
+  );
+}
+
+// Send a .3mf / .gcode file to the printer. Only rendered inside StatusPanel,
+// i.e. when the printer is configured. Uploading is best-effort: a non-OK
+// response (cloud mode can't accept uploads yet) shows a clear LAN-mode hint
+// and never crashes the page.
+function SendFilePanel() {
+  const [file, setFile] = useState(null);
+  const [dragging, setDragging] = useState(false);
+  // 'idle' | 'sending' | 'success' | 'error'
+  const [state, setState] = useState('idle');
+  const [message, setMessage] = useState('');
+  const inputRef = useRef(null);
+
+  const ACCEPT = '.3mf,.gcode';
+
+  function isAllowed(name) {
+    const n = (name || '').toLowerCase();
+    return n.endsWith('.3mf') || n.endsWith('.gcode');
+  }
+
+  function pick(f) {
+    if (!f) return;
+    if (!isAllowed(f.name)) {
+      setFile(null);
+      setState('error');
+      setMessage('Only .3mf and .gcode files are supported.');
+      return;
+    }
+    setFile(f);
+    setState('idle');
+    setMessage('');
+  }
+
+  function onDrop(e) {
+    e.preventDefault();
+    setDragging(false);
+    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    pick(f);
+  }
+
+  async function send() {
+    if (!file || state === 'sending') return;
+    setState('sending');
+    setMessage('');
+    try {
+      const body = new FormData();
+      body.append('file', file, file.name);
+      const res = await fetch('/api/printer/upload', {
+        method: 'POST',
+        body,
+        cache: 'no-store',
+      });
+      let data = {};
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
+      if (res.ok && !data.error) {
+        setState('success');
+        setMessage(`Sent ${file.name} to the printer.`);
+        setFile(null);
+        if (inputRef.current) inputRef.current.value = '';
+      } else {
+        // Includes cloud-mode uploads the agent can't accept yet.
+        setState('error');
+        setMessage(
+          'File send needs the printer on the local network (LAN mode) - status and controls work over cloud.'
+        );
+      }
+    } catch {
+      setState('error');
+      setMessage(
+        'File send needs the printer on the local network (LAN mode) - status and controls work over cloud.'
+      );
+    }
+  }
+
+  return (
+    <div className="send-file">
+      <div className="card-label">Send a file</div>
+
+      <div
+        className={'send-drop' + (dragging ? ' dragging' : '')}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={onDrop}
+        onClick={() => inputRef.current && inputRef.current.click()}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (inputRef.current) inputRef.current.click();
+          }
+        }}
+      >
+        <span className="send-drop-main">
+          {file ? file.name : 'Drop a .3mf or .gcode file, or tap to choose'}
+        </span>
+        <span className="send-drop-sub muted">
+          For 3D models and manual test / R&amp;D files
+        </span>
+        <input
+          ref={inputRef}
+          className="send-input"
+          type="file"
+          accept={ACCEPT}
+          onChange={(e) => pick(e.target.files && e.target.files[0])}
+        />
+      </div>
+
+      <div className="send-actions">
+        <button
+          type="button"
+          className="btn btn-primary send-btn"
+          disabled={!file || state === 'sending'}
+          onClick={send}
+        >
+          {state === 'sending' ? 'Sending…' : 'Send to printer'}
+        </button>
+      </div>
+
+      {/* Reserved status line so success/error text never shifts layout. */}
+      <div
+        className={
+          'send-status' +
+          (state === 'error' ? ' is-error' : '') +
+          (state === 'success' ? ' is-success' : '')
+        }
+      >
+        {message}
+      </div>
     </div>
   );
 }

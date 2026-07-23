@@ -199,6 +199,90 @@
   min-height: 44px;
 }
 
+/* ---------- Send a file ---------- */
+
+/* Sits inside the status card, below the controls. Ruled off from the controls
+   above so it reads as its own section. */
+.send-file {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+/* Drop zone doubles as a click-to-choose target (44px+ tall). */
+.send-drop {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 16px 14px;
+  min-height: 72px;
+  justify-content: center;
+  text-align: center;
+  background: var(--panel2);
+  border: 1px dashed var(--rule-strong);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.send-drop.dragging {
+  border-color: var(--green);
+  border-style: solid;
+  background: var(--panel);
+}
+
+.send-drop:focus-visible {
+  outline: none;
+  border-color: var(--ink);
+}
+
+.send-drop-main {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.send-drop-sub {
+  font-size: 12px;
+}
+
+/* Native input is hidden; the whole drop zone triggers it. */
+.send-input {
+  display: none;
+}
+
+.send-actions {
+  display: flex;
+  margin-top: 12px;
+}
+
+.send-btn {
+  flex: 1 1 auto;
+  min-height: 44px;
+}
+
+/* Reserved-height status line so success/error never shifts the card. */
+.send-status {
+  margin-top: 10px;
+  min-height: calc(14px * 1.5);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.send-status.is-error {
+  color: var(--red);
+}
+
+.send-status.is-success {
+  color: var(--green);
+}
+
 /* ---------- Filament / spool panel ---------- */
 
 .spool-list {

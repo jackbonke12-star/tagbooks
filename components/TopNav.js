@@ -29,6 +29,25 @@ export default function TopNav() {
   const [open, setOpen] = useState(false);
   const moreRef = useRef(null);
 
+  // Theme starts null so SSR and the first client render agree (button shows a
+  // neutral label). After mount we read the value the inline script already set
+  // on <html>, so there's no hydration mismatch and no flash.
+  const [theme, setTheme] = useState(null);
+  useEffect(() => {
+    setTheme(document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light');
+  }, []);
+
+  function toggleTheme() {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    try {
+      localStorage.setItem('tagbooks-theme', next);
+    } catch {
+      // Ignore storage failures (private mode); the in-memory toggle still works.
+    }
+    setTheme(next);
+  }
+
   const isDash = pathname === '/';
   const isMoney = matches(pathname, '/money');
   const isClients = matches(pathname, '/clients');
@@ -108,6 +127,16 @@ export default function TopNav() {
             </div>
           ) : null}
         </div>
+
+        <button
+          type="button"
+          className="topnav-link topnav-theme"
+          onClick={toggleTheme}
+          aria-label="Toggle dark mode"
+          suppressHydrationWarning
+        >
+          {theme == null ? 'Theme' : theme === 'dark' ? 'Light' : 'Dark'}
+        </button>
       </div>
     </nav>
   );

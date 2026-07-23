@@ -18,6 +18,28 @@
     ui-monospace, monospace;
 }
 
+/* ---------- Dark theme ----------
+   Same token NAMES, remapped to a warm dark paper-ledger feel. Set on <html>
+   before paint by the inline script in layout.js, so the whole app re-themes
+   automatically. Light (default :root) is left exactly as-is. */
+html[data-theme="dark"] {
+  --bg: #14120d;        /* warm near-black paper */
+  --panel: #201d16;     /* raised dark card */
+  --panel2: #2a261d;    /* tinted dark fill (inputs, tabs) */
+  --line: #3a3528;      /* low-contrast ink rule */
+  --ink: #e8e2d4;       /* off-white ink text */
+  --muted: #9a927e;     /* dimmer faded ink */
+  --green: #5fb072;     /* brighter stamp green for dark */
+  --green-dim: #4a8d5b; /* softer green ink */
+  --red: #e0765f;       /* brighter accounting red for dark */
+  --red-dim: #6e463c;   /* faded red rule */
+  --rule-strong: #55503f;
+
+  /* Dark values for hardcoded near-white lifts/fills used above. */
+  --card-lift: #0d0b07;    /* subtle dark drop instead of paper highlight */
+  --input-focus: #26221a;  /* focused field fill on dark */
+}
+
 * {
   box-sizing: border-box;
 }
@@ -197,6 +219,14 @@ button {
   top: 3px;
 }
 
+/* Theme toggle: same ledger-tab look, but a real button (reset + pointer).
+   Sits at the end of the row; keeps a 44px tap target from .topnav-link. */
+.topnav-theme {
+  cursor: pointer;
+  font-family: var(--mono);
+  flex-shrink: 0;
+}
+
 /* ---- More menu ---- */
 
 .topnav-more {
@@ -293,6 +323,9 @@ button {
     font-size: 12px;
     letter-spacing: 0.5px;
   }
+  .topnav-theme {
+    padding: 0 9px;
+  }
 }
 
 /* ---------- Cards ---------- */
@@ -303,7 +336,7 @@ button {
   border-radius: var(--radius);
   padding: 16px;
   margin-bottom: 14px;
-  box-shadow: 0 1px 0 #d8cfbb;
+  box-shadow: 0 1px 0 var(--card-lift, #d8cfbb);
 }
 
 .card-label {
@@ -486,7 +519,7 @@ button {
 .select:focus,
 .textarea:focus {
   border-color: var(--ink);
-  background: #fffdf7;
+  background: var(--input-focus, #fffdf7);
   box-shadow: inset 0 -2px 0 var(--ink);
 }
 
@@ -617,7 +650,7 @@ button {
   border-radius: var(--radius);
   padding: 20px;
   margin-bottom: 14px;
-  box-shadow: 0 1px 0 #d8cfbb;
+  box-shadow: 0 1px 0 var(--card-lift, #d8cfbb);
   /* Reserve the hero's loaded footprint (label + big figure + meter + caption)
      so the "Loading..." state and the loaded state occupy the same height and
      the swap doesn't lurch the page. */
