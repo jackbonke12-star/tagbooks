@@ -7,8 +7,18 @@ import {
   money,
   monthName,
   monthRange,
+  localToday,
+  shortDate,
+  stageLabel,
 } from '../lib/catalog';
 import EntryRow from '../components/EntryRow';
+
+// tel: href from a phone string (US +1, digits only). Null when no digits.
+function telHref(phone) {
+  const digits = String(phone || '').replace(/\D/g, '');
+  if (!digits) return null;
+  return `tel:+1${digits}`;
+}
 
 const GOAL = 10000;
 
@@ -18,6 +28,7 @@ export default function DashboardPage() {
   const [sales, setSales] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [feed, setFeed] = useState([]);
+  const [followups, setFollowups] = useState([]);
 
   // Current LOCAL month, resolved once on mount.
   const now = useMemo(() => new Date(), []);
@@ -33,8 +44,15 @@ export default function DashboardPage() {
 
       const { first, last } = monthRange(year, monthIndex);
 
-      const [salesRes, expensesRes, feedSalesRes, feedExpensesRes] =
-        await Promise.all([
+      const today = localToday();
+
+      const [
+        salesRes,
+        expensesRes,
+        feedSalesRes,
+        feedExpensesRes,
+        followupsRes,
+      ] = await Promise.all([
           supabase
             .from('sales')
             .select('*')
@@ -58,6 +76,13 @@ export default function DashboardPage() {
             .order('date', { ascending: false })
             .order('created_at', { ascending: false })
             .limit(5),
+          // Clients whose follow-up is due today or overdue.
+          supabase
+            .from('clients')
+            .select('*')
+            .not('next_followup', 'is', null)
+            .lte('next_followup', today)
+            .order('next_followup', { ascending: true }),
         ]);
 
       if (!active) return;
@@ -66,7 +91,8 @@ export default function DashboardPage() {
         salesRes.error ||
         expensesRes.error ||
         feedSalesRes.error ||
-        feedExpensesRes.error;
+        feedExpensesRes.error ||
+        followupsRes.error;
       if (firstErr) {
         setError(firstErr.message || 'Failed to load data.');
         setLoading(false);
@@ -75,6 +101,7 @@ export default function DashboardPage() {
 
       setSales(salesRes.data || []);
       setExpenses(expensesRes.data || []);
+      setFollowups(followupsRes.data || []);
 
       const merged = [
         ...(feedSalesRes.data || []).map((s) => ({ ...s, kind: 'sale' })),
@@ -143,6 +170,44 @@ export default function DashboardPage() {
   return (
     <div className="dash">
       {error ? <div className="form-error">{error}</div> : null}
+
+      {/* FOLLOW-UPS DUE */}
+      {followups.length > 0 ? (
+        <div className="card">
+          <div className="card-label">Follow-ups due</div>
+          <div className="followup-list">
+            {followups.map((client) => {
+              const tel = telHref(client.phone);
+              return (
+                <div className="list-item followup-row" key={client.id}>
+                  <div className="followup-main">
+                    <span className="followup-name">
+                      {client.business_name}
+                    </span>
+                    <span className={`chip chip-${client.stage}`}>
+                      {stageLabel(client.stage)}
+                    </span>
+                  </div>
+                  <div className="followup-meta">
+                    <span className="red followup-date">
+                      {shortDate(client.next_followup)}
+                    </span>
+                    {client.phone ? (
+                      tel ? (
+                        <a className="followup-tel green" href={tel}>
+                          {client.phone}
+                        </a>
+                      ) : (
+                        <span className="muted">{client.phone}</span>
+                      )
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
 
       {/* HERO */}
       <div className="card goal-hero">

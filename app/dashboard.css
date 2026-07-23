@@ -63,6 +63,83 @@
   margin-top: 4px;
 }
 
+/* Follow-ups due list. */
+.followup-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+}
+
+.followup-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.followup-name {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.followup-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.followup-date {
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.followup-tel {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Stage chips (shared shape with clients page). */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  color: var(--muted);
+}
+
+.chip-lead {
+  color: var(--muted);
+  background: var(--panel2);
+  border-color: var(--line);
+}
+
+.chip-pitched {
+  color: var(--ink);
+  background: rgba(143, 163, 155, 0.14);
+  border-color: var(--muted);
+}
+
+.chip-sold {
+  color: var(--green);
+  background: rgba(52, 217, 123, 0.12);
+  border-color: var(--green-dim);
+}
+
+.chip-care_plan {
+  color: #06140c;
+  background: var(--green);
+  border-color: var(--green);
+}
+
 /* EntryRow internals (shared with money page). */
 .entry-main {
   display: flex;

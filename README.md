@@ -8,6 +8,7 @@ Next.js (App Router) + Supabase. Phones-first. Runs on port 3003.
 1. **Create a Supabase project** (free tier) at https://supabase.com.
 
 2. **Run the schema.** In the Supabase dashboard: SQL Editor -> New query -> paste the contents of `supabase.sql` -> Run.
+   If you already ran `supabase.sql` before the clients update, run `migration-clients.sql` instead.
 
 3. **Disable email confirmations** so the two partners can sign up instantly:
    Authentication -> Providers -> Email -> turn off "Confirm email" -> Save.

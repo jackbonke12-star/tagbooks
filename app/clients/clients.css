@@ -1,0 +1,165 @@
+/* Clients page styles. Tokens from globals.css. */
+
+.clients {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Error line (shared shape with money / dashboard). */
+.form-error {
+  background: var(--red-dim);
+  border: 1px solid var(--red);
+  color: var(--red);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+/* Add/edit form layout (shared shape with money page). */
+.add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.add-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+@media (max-width: 640px) {
+  .add-form .grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+@media (max-width: 640px) {
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+  .form-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Stage filter: allow the segmented control to wrap on narrow screens. */
+.stage-filter {
+  flex-wrap: wrap;
+}
+
+.stage-filter button {
+  flex: 1 1 auto;
+  min-width: 20%;
+}
+
+/* Clients list. */
+.client-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+}
+
+.client-row {
+  align-items: flex-start;
+}
+
+.client-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.client-name {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.client-sub {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.client-tel {
+  color: var(--green);
+  font-weight: 600;
+}
+
+.client-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.client-followup {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.client-followup.red {
+  color: var(--red);
+}
+
+.client-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.client-actions .btn {
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+/* ---------- Stage chips ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  color: var(--muted);
+}
+
+.chip-lead {
+  color: var(--muted);
+  background: var(--panel2);
+  border-color: var(--line);
+}
+
+.chip-pitched {
+  color: var(--ink);
+  background: rgba(143, 163, 155, 0.14);
+  border-color: var(--muted);
+}
+
+.chip-sold {
+  color: var(--green);
+  background: rgba(52, 217, 123, 0.12);
+  border-color: var(--green-dim);
+}
+
+.chip-care_plan {
+  color: #06140c;
+  background: var(--green);
+  border-color: var(--green);
+}

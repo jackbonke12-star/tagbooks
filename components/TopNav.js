@@ -14,6 +14,7 @@ export default function TopNav() {
   }
 
   const isDash = pathname === '/';
+  const isClients = pathname === '/clients' || pathname.startsWith('/clients/');
   const isMoney = pathname === '/money' || pathname.startsWith('/money/');
 
   return (
@@ -22,6 +23,12 @@ export default function TopNav() {
       <div className="topnav-links">
         <Link className={'topnav-link' + (isDash ? ' on' : '')} href="/">
           Dashboard
+        </Link>
+        <Link
+          className={'topnav-link' + (isClients ? ' on' : '')}
+          href="/clients"
+        >
+          Clients
         </Link>
         <Link className={'topnav-link' + (isMoney ? ' on' : '')} href="/money">
           Money

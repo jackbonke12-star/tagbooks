@@ -216,6 +216,8 @@ export default function MoneyPage() {
 function SaleForm({ editing, onSaved, onCancelEdit }) {
   const [date, setDate] = useState(localToday());
   const [clientName, setClientName] = useState('');
+  const [clientId, setClientId] = useState('');
+  const [clients, setClients] = useState([]);
   const [product, setProduct] = useState('basic_kit');
   const [amount, setAmount] = useState(String(PRODUCTS[0].price));
   const [type, setType] = useState('one_time'); // 'one_time' | 'recurring'
@@ -226,11 +228,27 @@ function SaleForm({ editing, onSaved, onCancelEdit }) {
 
   const isEdit = !!editing;
 
+  // Load the client list for the optional picker (business_name order).
+  useEffect(() => {
+    let active = true;
+    supabase
+      .from('clients')
+      .select('id, business_name, stage')
+      .order('business_name', { ascending: true })
+      .then(({ data }) => {
+        if (active) setClients(data || []);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   // Populate from the row when entering edit mode.
   useEffect(() => {
     if (editing) {
       setDate(editing.date || localToday());
       setClientName(editing.client_name || '');
+      setClientId(editing.client_id || '');
       setProduct(editing.product || 'other');
       setAmount(
         editing.amount === null || editing.amount === undefined
@@ -243,6 +261,14 @@ function SaleForm({ editing, onSaved, onCancelEdit }) {
       setError('');
     }
   }, [editing]);
+
+  // Picking a client auto-fills the (still editable) client name text input.
+  function onClientChange(value) {
+    setClientId(value);
+    if (!value) return;
+    const c = clients.find((x) => x.id === value);
+    if (c) setClientName(c.business_name || '');
+  }
 
   function onProductChange(value) {
     setProduct(value);
@@ -276,6 +302,7 @@ function SaleForm({ editing, onSaved, onCancelEdit }) {
     const payload = {
       date,
       client_name: clientName.trim(),
+      client_id: clientId || null,
       product,
       amount: amt,
       type,
@@ -296,11 +323,24 @@ function SaleForm({ editing, onSaved, onCancelEdit }) {
       return;
     }
 
+    // On a fresh sale tied to a client, promote lead/pitched -> sold.
+    // Never downgrade a client already at 'sold' or 'care_plan'.
+    if (!isEdit && clientId) {
+      const c = clients.find((x) => x.id === clientId);
+      if (c && (c.stage === 'lead' || c.stage === 'pitched')) {
+        await supabase
+          .from('clients')
+          .update({ stage: 'sold' })
+          .eq('id', clientId);
+      }
+    }
+
     if (isEdit) {
       onSaved();
     } else {
       // Optimistic clear, keep date + closed_by sticky for rapid entry.
       setClientName('');
+      setClientId('');
       setProduct('basic_kit');
       setAmount(String(PRODUCTS[0].price));
       setType('one_time');
@@ -325,15 +365,31 @@ function SaleForm({ editing, onSaved, onCancelEdit }) {
           />
         </div>
         <div className="field">
-          <label className="label">Client name</label>
-          <input
-            type="text"
-            className="input"
-            value={clientName}
-            placeholder="Business name"
-            onChange={(e) => setClientName(e.target.value)}
-          />
+          <label className="label">Client</label>
+          <select
+            className="select"
+            value={clientId}
+            onChange={(e) => onClientChange(e.target.value)}
+          >
+            <option value="">No client</option>
+            {clients.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.business_name}
+              </option>
+            ))}
+          </select>
         </div>
+      </div>
+
+      <div className="field">
+        <label className="label">Client name</label>
+        <input
+          type="text"
+          className="input"
+          value={clientName}
+          placeholder="Business name"
+          onChange={(e) => setClientName(e.target.value)}
+        />
       </div>
 
       <div className="grid2">
