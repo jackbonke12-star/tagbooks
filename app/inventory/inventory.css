@@ -60,6 +60,26 @@
   color: var(--ink);
 }
 
+/* Reorder link: small, on-theme, sits under the item name. Full 44px tap
+   target via padding + inline-flex so it never crowds the +/- steppers. */
+.inv-reorder {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 2px;
+  margin-top: -6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--green-dim);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.inv-reorder:active {
+  color: var(--green);
+}
+
 .inv-controls {
   display: flex;
   align-items: center;

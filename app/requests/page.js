@@ -24,11 +24,25 @@ const FILTERS = [
   { value: 'done', label: 'Done' },
 ];
 
+// Priority segmented control + stamp labels. Defaults to medium.
+const PRIORITIES = [
+  { value: 'high', label: 'High' },
+  { value: 'medium', label: 'Med' },
+  { value: 'low', label: 'Low' },
+];
+const PRIORITY_LABEL = { high: 'High', medium: 'Med', low: 'Low' };
+// Sort weight: high first, then medium, then low.
+const PRIORITY_RANK = { high: 0, medium: 1, low: 2 };
+
+// Optional request-type suggestions for the datalist.
+const REQ_TYPES = ['Feature', 'Bug', 'Idea', 'Chore'];
+
 export default function RequestsPage() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [filter, setFilter] = useState('all');
+  const [editing, setEditing] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -99,13 +113,33 @@ export default function RequestsPage() {
   }, [requests]);
 
   const visible = useMemo(() => {
-    if (filter === 'all') return requests;
-    return requests.filter((r) => r.status === filter);
+    const rows =
+      filter === 'all'
+        ? requests.slice()
+        : requests.filter((r) => r.status === filter);
+    // Priority high -> medium -> low, then newest first within a priority.
+    rows.sort((a, b) => {
+      const pr =
+        (PRIORITY_RANK[a.priority] ?? 1) - (PRIORITY_RANK[b.priority] ?? 1);
+      if (pr !== 0) return pr;
+      const ca = a.created_at || '';
+      const cb = b.created_at || '';
+      return ca < cb ? 1 : ca > cb ? -1 : 0;
+    });
+    return rows;
   }, [requests, filter]);
 
   return (
     <div className="requests">
-      <RequestForm onSaved={load} onError={setLoadError} />
+      <RequestForm
+        editing={editing}
+        onSaved={() => {
+          setEditing(null);
+          load();
+        }}
+        onCancelEdit={() => setEditing(null)}
+        onError={setLoadError}
+      />
 
       {/* Status filter */}
       <div className="seg request-filter">
@@ -149,12 +183,18 @@ export default function RequestsPage() {
                   {req.detail ? (
                     <span className="req-detail">{req.detail}</span>
                   ) : null}
+                  {req.req_type ? (
+                    <span className="req-type">{req.req_type}</span>
+                  ) : null}
                   <span className="req-by">
                     by {req.submitted_by || 'Someone'}
                     {req.created_at ? ` · ${shortDate(dateOnly(req.created_at))}` : ''}
                   </span>
                 </div>
                 <div className="req-right">
+                  <span className={`chip req-prio prio-${req.priority || 'medium'}`}>
+                    {PRIORITY_LABEL[req.priority] || 'Med'}
+                  </span>
                   <button
                     type="button"
                     className={`req-status req-status-${req.status}`}
@@ -164,6 +204,13 @@ export default function RequestsPage() {
                     }, tap to advance`}
                   >
                     {STATUS_LABEL[req.status] || req.status}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-ghost req-edit"
+                    onClick={() => setEditing(req)}
+                  >
+                    Edit
                   </button>
                   <button
                     type="button"
@@ -189,12 +236,28 @@ function dateOnly(ts) {
 
 /* ---------------- Request form ---------------- */
 
-function RequestForm({ onSaved, onError }) {
+function RequestForm({ editing, onSaved, onCancelEdit, onError }) {
   const [title, setTitle] = useState('');
   const [detail, setDetail] = useState('');
   const [submittedBy, setSubmittedBy] = useState(PEOPLE[0].value);
+  const [priority, setPriority] = useState('medium');
+  const [reqType, setReqType] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+
+  const isEdit = !!editing;
+
+  // Populate the form when an existing request is selected for editing.
+  useEffect(() => {
+    if (editing) {
+      setTitle(editing.title || '');
+      setDetail(editing.detail || '');
+      setSubmittedBy(editing.submitted_by || PEOPLE[0].value);
+      setPriority(editing.priority || 'medium');
+      setReqType(editing.req_type || '');
+      setError('');
+    }
+  }, [editing]);
 
   async function submit(e) {
     e.preventDefault();
@@ -210,29 +273,47 @@ function RequestForm({ onSaved, onError }) {
       title: title.trim(),
       detail: detail.trim() ? detail.trim() : null,
       submitted_by: submittedBy,
-      status: 'new',
+      priority,
+      req_type: reqType.trim() ? reqType.trim() : null,
     };
-    const { error: err } = await supabase.from('requests').insert(payload);
+
+    let res;
+    if (isEdit) {
+      res = await supabase.from('requests').update(payload).eq('id', editing.id);
+    } else {
+      res = await supabase
+        .from('requests')
+        .insert({ ...payload, status: 'new' });
+    }
+
     setSaving(false);
-    if (err) {
-      setError(err.message || 'Failed to add request.');
+    if (res.error) {
+      setError(res.error.message || 'Failed to save request.');
       return;
     }
-    // Clear the form but keep the submitted_by selection sticky.
-    setTitle('');
-    setDetail('');
     if (onError) onError('');
-    onSaved();
+
+    if (isEdit) {
+      onSaved();
+    } else {
+      // Clear the form but keep the submitted_by + priority selections sticky.
+      setTitle('');
+      setDetail('');
+      setReqType('');
+      onSaved();
+    }
   }
 
   return (
     <form className="card add-form" onSubmit={submit}>
-      <div className="card-label">New request</div>
+      <div className="card-label">{isEdit ? 'Edit request' : 'New request'}</div>
 
-      <p className="req-intro muted">
-        Ask for app changes and features. Add anything you want built - Jack
-        sends these to get done.
-      </p>
+      {!isEdit ? (
+        <p className="req-intro muted">
+          Ask for app changes and features. Add anything you want built - Jack
+          sends these to get done.
+        </p>
+      ) : null}
 
       <div className="field">
         <label className="label">Title</label>
@@ -256,6 +337,35 @@ function RequestForm({ onSaved, onError }) {
       </div>
 
       <div className="field">
+        <label className="label">Priority</label>
+        <div className="seg">
+          {PRIORITIES.map((p) => (
+            <button
+              key={p.value}
+              type="button"
+              className={priority === p.value ? 'on' : ''}
+              onClick={() => setPriority(p.value)}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="field">
+        <label className="label">Type</label>
+        <input
+          type="text"
+          className="input"
+          value={reqType}
+          list="req-types"
+          placeholder="Feature, Bug, Idea, Chore (optional)"
+          autoComplete="off"
+          onChange={(e) => setReqType(e.target.value)}
+        />
+      </div>
+
+      <div className="field">
         <label className="label">Submitted by</label>
         <div className="seg">
           {PEOPLE.map((p) => (
@@ -274,10 +384,26 @@ function RequestForm({ onSaved, onError }) {
       {error ? <div className="form-error">{error}</div> : null}
 
       <div className="form-actions">
+        {isEdit ? (
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={onCancelEdit}
+            disabled={saving}
+          >
+            Cancel
+          </button>
+        ) : null}
         <button type="submit" className="btn btn-primary" disabled={saving}>
-          {saving ? 'Saving…' : 'Add request'}
+          {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Add request'}
         </button>
       </div>
+
+      <datalist id="req-types">
+        {REQ_TYPES.map((t) => (
+          <option key={t} value={t} />
+        ))}
+      </datalist>
     </form>
   );
 }

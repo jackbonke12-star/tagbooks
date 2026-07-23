@@ -18,7 +18,9 @@ export default function EntryRow({ entry, onEdit, onDelete }) {
     ? entry.client_name || 'Sale'
     : categoryLabel(entry.category);
 
-  const subtitle = isSale ? productLabel(entry.product) : entry.notes || '';
+  const subtitle = isSale
+    ? productLabel(entry.product)
+    : [entry.vendor, entry.notes].filter(Boolean).join(' · ');
 
   const who = isSale ? entry.closed_by : entry.paid_by;
   const amountClass = isSale ? 'green' : 'red';

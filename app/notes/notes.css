@@ -1,0 +1,162 @@
+/* Notes / dev-log page styles. Tokens from globals.css. */
+
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Error line (shared shape with money / dashboard). */
+.form-error {
+  background: rgba(163, 51, 34, 0.08);
+  border-left: 3px solid var(--red);
+  color: var(--red);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+/* Add form layout (shared shape with requests / places). */
+.add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.add-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.note-intro {
+  margin: 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+@media (max-width: 640px) {
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+  .form-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Notes list. */
+.note-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+}
+
+/* Reserve height so a short note never makes the row collapse / shift. */
+.note-empty {
+  margin-top: 4px;
+}
+
+.note-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 60px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.note-row:last-child {
+  border-bottom: none;
+}
+
+.note-row.note-done {
+  opacity: 0.6;
+}
+
+/* Check-toggle: 44px tap target, ledger checkbox stamp. */
+.note-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.note-check-box {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--rule-strong);
+  border-radius: 3px;
+  background: var(--panel);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.note-check.on .note-check-box {
+  background: var(--green);
+  border-color: var(--green);
+  /* White check drawn with a rotated box-shadow tick. */
+  box-shadow: inset 0 0 0 2px var(--green), inset -3px -6px 0 -2px var(--panel),
+    inset 6px -3px 0 -2px var(--panel);
+}
+
+.note-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.note-body {
+  font-size: 15px;
+  color: var(--ink);
+  white-space: pre-wrap;
+  /* Long unbroken text must wrap, never force sideways scroll on a phone. */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.note-done .note-body {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.note-by {
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.note-del {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 4px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.note-del:active {
+  color: var(--red);
+}

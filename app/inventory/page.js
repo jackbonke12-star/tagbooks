@@ -173,6 +173,7 @@ export default function InventoryPage() {
                 <InvRow
                   key={it.value}
                   label={it.label}
+                  reorderUrl={it.reorderUrl}
                   row={row}
                   onAdjust={adjust}
                   onSet={setQuantity}
@@ -240,7 +241,7 @@ export default function InventoryPage() {
 //   non-negative integer. Empty/invalid input reverts to the last known value.
 // - A `focusedRef` guards against realtime clobber: while the field is being
 //   edited we do NOT sync the incoming prop over the user's in-progress text.
-function InvRow({ label, row, onAdjust, onSet }) {
+function InvRow({ label, reorderUrl, row, onAdjust, onSet }) {
   const committed = Number(row.quantity || 0);
   const [draft, setDraft] = useState(String(committed));
   const focusedRef = useRef(false);
@@ -268,6 +269,16 @@ function InvRow({ label, row, onAdjust, onSet }) {
     <div className="inv-row">
       <div className="inv-main">
         <span className="inv-name">{label}</span>
+        {reorderUrl ? (
+          <a
+            className="inv-reorder"
+            href={reorderUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Reorder
+          </a>
+        ) : null}
       </div>
       <div className="inv-controls">
         <button

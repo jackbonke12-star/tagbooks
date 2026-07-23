@@ -203,12 +203,13 @@ export default function MoneyPage() {
         ])
       );
       const expensesCsv = toCsv(
-        ['date', 'category', 'amount', 'paid_by', 'notes'],
+        ['date', 'category', 'amount', 'paid_by', 'where_bought', 'notes'],
         (expensesRes.data || []).map((e) => [
           e.date,
           categoryLabel(e.category),
           e.amount,
           e.paid_by,
+          e.vendor,
           e.notes,
         ])
       );
@@ -723,6 +724,7 @@ function ExpenseForm({ editing, onSaved, onCancelEdit }) {
   const [category, setCategory] = useState(CATEGORIES[0].value);
   const [amount, setAmount] = useState('');
   const [paidBy, setPaidBy] = useState('jack');
+  const [vendor, setVendor] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -739,6 +741,7 @@ function ExpenseForm({ editing, onSaved, onCancelEdit }) {
           : String(editing.amount)
       );
       setPaidBy(editing.paid_by === 'jackson' ? 'jackson' : 'jack');
+      setVendor(editing.vendor || '');
       setNotes(editing.notes || '');
       setError('');
     }
@@ -760,6 +763,7 @@ function ExpenseForm({ editing, onSaved, onCancelEdit }) {
       category,
       amount: amt,
       paid_by: paidBy,
+      vendor: vendor.trim() ? vendor.trim() : null,
       notes: notes.trim() ? notes.trim() : null,
     };
 
@@ -782,6 +786,7 @@ function ExpenseForm({ editing, onSaved, onCancelEdit }) {
       // Keep date + paid_by sticky for rapid entry.
       setCategory(CATEGORIES[0].value);
       setAmount('');
+      setVendor('');
       setNotes('');
       onSaved();
     }
@@ -849,6 +854,17 @@ function ExpenseForm({ editing, onSaved, onCancelEdit }) {
             Jackson
           </button>
         </div>
+      </div>
+
+      <div className="field">
+        <label className="label">Where bought</label>
+        <input
+          type="text"
+          className="input"
+          value={vendor}
+          placeholder="e.g. Amazon, Staples (optional)"
+          onChange={(e) => setVendor(e.target.value)}
+        />
       </div>
 
       <div className="field">
