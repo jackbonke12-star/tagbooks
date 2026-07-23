@@ -296,6 +296,14 @@ function SendFilePanel() {
     <div className="send-file">
       <div className="card-label">Send a file</div>
 
+      <ol className="print-steps">
+        <li>Slice the model in Bambu Studio and export a sliced <strong>.3mf</strong>.</li>
+        <li>Drop it below (or tap to choose), then hit <strong>Send to printer</strong>.</li>
+        <li>Watch the status above: within a few minutes it turns to <strong>Running</strong> with the temps climbing and the percent ticking up.</li>
+        <li>Only sliced <strong>.3mf</strong> files start a print; raw .gcode is just saved.</li>
+        <li>If nothing starts after about 5 minutes, the printer did not take the command &mdash; tell Jack and he will adjust it.</li>
+      </ol>
+
       <div
         className={'send-drop' + (dragging ? ' dragging' : '')}
         onDragOver={(e) => {
