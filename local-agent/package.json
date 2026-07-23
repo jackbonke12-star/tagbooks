@@ -1,0 +1,9 @@
+{
+  "name": "tagbooks-printer-agent",
+  "private": true,
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

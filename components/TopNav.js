@@ -12,6 +12,7 @@ const MORE_ITEMS = [
   { href: '/inventory', label: 'Inventory' },
   { href: '/recurring', label: 'Recurring' },
   { href: '/requests', label: 'Requests' },
+  { href: '/printer', label: 'Printer' },
 ];
 
 // True when the current path matches a nav route (exact or nested).

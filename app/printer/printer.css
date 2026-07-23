@@ -1,0 +1,248 @@
+/* Printer page. Design tokens come from globals.css. Paper-ledger aesthetic,
+   rigid layout (reserved heights so realtime updates never shift things). */
+
+.printer {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+@media (max-width: 640px) {
+  .printer {
+    gap: 12px;
+  }
+  .printer > .card {
+    margin-bottom: 0;
+  }
+}
+
+.printer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.printer-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* Panel keeps a stable footprint so the loading/connected swap doesn't lurch. */
+.printer-panel {
+  min-height: 120px;
+}
+
+.load-line {
+  padding: 6px 0;
+}
+
+/* ---------- Setup / not-connected card ---------- */
+
+.setup-stamp {
+  display: inline-block;
+  margin: 8px 0 12px;
+  padding: 6px 14px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 2px solid var(--muted);
+  border-radius: 3px;
+  transform: rotate(-2deg);
+}
+
+.setup-note {
+  font-size: 14px;
+  margin: 6px 0 0;
+}
+
+.setup-note code {
+  font-family: var(--mono);
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 0 5px;
+  font-size: 13px;
+}
+
+/* ---------- Big state stamp ---------- */
+
+.state-stamp {
+  display: inline-block;
+  margin: 4px 0 14px;
+  padding: 8px 18px;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 3px solid currentColor;
+  border-radius: 4px;
+  transform: rotate(-3deg);
+  /* Reserve the stamp's height so it never reflows between states. */
+  min-height: 52px;
+}
+
+.stamp-idle {
+  color: var(--muted);
+}
+.stamp-running {
+  color: var(--green);
+  transform: rotate(-2deg);
+}
+.stamp-paused {
+  color: var(--rule-strong);
+  transform: rotate(1deg);
+}
+.stamp-finished {
+  color: var(--green);
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--panel);
+  transform: rotate(-1deg);
+}
+.stamp-error {
+  color: var(--red);
+  transform: rotate(2deg);
+}
+.stamp-offline {
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+/* ---------- Progress ---------- */
+
+.printer-progress {
+  margin-bottom: 14px;
+}
+
+.progress-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  /* Reserve one line so an appearing "left" string doesn't grow the row. */
+  min-height: calc(14px * 1.5);
+}
+
+/* ---------- Current file ---------- */
+
+.file-line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+  min-height: 22px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.file-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.file-name {
+  font-weight: 600;
+  color: var(--ink);
+  min-width: 0;
+}
+
+/* ---------- Temp / info tiles (2x2, shares dashboard stat-tile look) ---------- */
+
+.temp-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+@media (min-width: 700px) {
+  .temp-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.temp-value {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.temp-target {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+/* ---------- Controls ---------- */
+
+.printer-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.printer-controls .btn {
+  flex: 1 1 auto;
+  min-width: 96px;
+  min-height: 44px;
+}
+
+/* ---------- Filament / spool panel ---------- */
+
+.spool-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+}
+
+.spool-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  min-height: 44px;
+}
+
+.spool-row:last-child {
+  border-bottom: none;
+}
+
+.spool-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
+  border: 1px solid var(--rule-strong);
+  flex-shrink: 0;
+}
+
+.spool-name {
+  font-weight: 600;
+  color: var(--ink);
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-wrap: anywhere;
+}
+
+.spool-price {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.spool-note {
+  font-size: 12px;
+  margin: 10px 0 0;
+}

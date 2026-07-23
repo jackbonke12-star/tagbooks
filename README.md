@@ -35,6 +35,33 @@ Next.js (App Router) + Supabase. Phones-first. Runs on port 3003.
    (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`) in the Vercel project
    settings, then deploy.
 
+## 3D Printer
+
+The `/printer` page shows live Bambu Lab printer status (state, progress, temps)
+and Pause / Resume / Stop controls, plus a reference filament list.
+
+The printer sits on the home LAN, which Vercel cannot reach. A small **local
+agent** (`local-agent/`) runs on the Mac that shares the printer's network,
+talks to the printer over MQTT + FTPS, and is exposed to the internet through a
+tunnel. The Vercel route handlers under `app/api/printer/` call that tunnel URL
+server-side with a shared secret, so the browser never holds any credentials.
+
+1. **Run the agent on the Mac.** See `local-agent/README.md`. In short: the env
+   is at `local-agent/.env` (gitignored, holds the real printer creds + shared
+   secret), then `node local-agent/server.js`.
+
+2. **Expose it with a tunnel** to get a public URL, e.g.
+   `cloudflared tunnel --url http://localhost:4477` or
+   `npx localtunnel --port 4477`.
+
+3. **Set the Vercel env vars** (Project Settings -> Environment Variables):
+
+   - `BAMBU_AGENT_URL` = the tunnel URL
+   - `BAMBU_AGENT_SECRET` = the same string as the agent's `AGENT_SHARED_SECRET`
+
+   Both are **required** for the `/printer` page to connect. With them blank the
+   page renders a calm "Printer not connected yet" setup card instead of erroring.
+
 ## Troubleshooting
 
 **Data empty?** Check `.env.local` (and the Vercel env vars) hold the correct URL and anon key,
