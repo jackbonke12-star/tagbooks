@@ -8,8 +8,8 @@
 
 /* Error line (shared shape with money / dashboard). */
 .form-error {
-  background: var(--red-dim);
-  border: 1px solid var(--red);
+  background: rgba(163, 51, 34, 0.08);
+  border-left: 3px solid var(--red);
   color: var(--red);
   border-radius: var(--radius);
   padding: 10px 14px;
@@ -19,13 +19,13 @@
 
 /* Low-stock warning banner. */
 .stock-warning {
-  background: rgba(255, 93, 93, 0.1);
-  border: 1px solid var(--red-dim);
+  background: rgba(163, 51, 34, 0.08);
+  border-left: 3px solid var(--red);
   color: var(--red);
   border-radius: var(--radius);
   padding: 12px 14px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* Inventory rows. */
@@ -128,37 +128,35 @@
   flex-shrink: 0;
 }
 
-/* Status chip (tap to advance). */
+/* Status chip as tap-to-advance rubber stamp. */
 .pq-status {
   display: inline-flex;
   align-items: center;
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 12px;
+  padding: 4px 11px;
+  border-radius: 3px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.02em;
-  border: 1px solid var(--line);
-  background: var(--panel2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 2px solid currentColor;
+  background: transparent;
   color: var(--muted);
   cursor: pointer;
+  transform: rotate(-3deg);
 }
 
 .pq-status-waiting {
-  color: var(--muted);
-  background: var(--panel2);
-  border-color: var(--line);
+  color: #9a6b16; /* amber ink */
+  transform: rotate(2deg);
 }
 
 .pq-status-printing {
-  color: var(--ink);
-  background: rgba(143, 163, 155, 0.14);
-  border-color: var(--muted);
+  color: #35506b; /* stamp-blue ink */
 }
 
 .pq-status-done {
   color: var(--green);
-  background: rgba(52, 217, 123, 0.12);
-  border-color: var(--green-dim);
+  transform: rotate(1deg);
 }
 
 .pq-del {

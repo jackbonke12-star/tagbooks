@@ -8,8 +8,8 @@
 
 /* Error line (shared shape with money / dashboard). */
 .form-error {
-  background: var(--red-dim);
-  border: 1px solid var(--red);
+  background: rgba(163, 51, 34, 0.08);
+  border-left: 3px solid var(--red);
   color: var(--red);
   border-radius: var(--radius);
   padding: 10px 14px;
@@ -20,9 +20,10 @@
 /* MRR hero. */
 .mrr-hero {
   background: var(--panel);
-  border: 1px solid var(--line);
+  border: 1px solid var(--rule-strong);
   border-radius: var(--radius);
   padding: 20px;
+  box-shadow: 0 1px 0 #d8cfbb;
 }
 
 .mrr-caption {

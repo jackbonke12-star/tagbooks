@@ -1,15 +1,21 @@
 :root {
-  --bg: #0c0f0e;
-  --panel: #151a18;
-  --panel2: #1c2320;
-  --line: #26302c;
-  --ink: #e8efec;
-  --muted: #8fa39b;
-  --green: #34d97b;
-  --green-dim: #1d6b42;
-  --red: #ff5d5d;
-  --red-dim: #7a2e2e;
-  --radius: 14px;
+  /* Paper ledger palette. Token NAMES preserved; values remapped to paper. */
+  --bg: #f6f1e7;        /* warm paper */
+  --panel: #fbf7ee;     /* lighter paper card */
+  --panel2: #efe8d7;    /* tinted paper (inputs, fills) */
+  --line: #c9bfa6;      /* faint ink rule */
+  --ink: #1c1a15;       /* near-black ink */
+  --muted: #8a8371;     /* faded ink */
+  --green: #2f5d3a;     /* deep stamp green */
+  --green-dim: #4a7d55; /* softer green ink */
+  --red: #a33322;       /* accounting red */
+  --red-dim: #c9a89a;   /* faded red rule */
+  --radius: 5px;        /* crisp paper corners */
+
+  /* Paper-only helpers (do not replace any existing token). */
+  --rule-strong: #7d745c;
+  --mono: "Courier Prime", "Courier New", "DejaVu Sans Mono", "Nimbus Mono PS",
+    ui-monospace, monospace;
 }
 
 * {
@@ -25,10 +31,22 @@ body {
 body {
   background: var(--bg);
   color: var(--ink);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  font-family: var(--mono);
   -webkit-font-smoothing: antialiased;
-  line-height: 1.4;
+  line-height: 1.5;
+}
+
+/* Numbers read as ledger figures everywhere. */
+.big-num,
+.entry-amount,
+.rec-amount,
+.followup-date,
+.client-followup,
+.month-nav-label,
+.goal-caption,
+.settle-line,
+.month-totals {
+  font-variant-numeric: tabular-nums;
 }
 
 a {
@@ -81,6 +99,7 @@ button {
   border-radius: 50%;
   background: var(--green);
   vertical-align: middle;
+  border: 1px solid var(--ink);
 }
 
 /* ---------- Top nav ---------- */
@@ -90,28 +109,30 @@ button {
   top: 0;
   z-index: 20;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 12px;
-  padding: 12px 16px;
-  background: rgba(12, 15, 14, 0.9);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--line);
+  padding: 14px 16px 0;
+  background: var(--bg);
+  border-bottom: 2px solid var(--rule-strong);
 }
 
 .topnav-brand {
   font-weight: 700;
-  letter-spacing: 0.3px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
   font-size: 17px;
+  padding-bottom: 8px;
 }
 
 .topnav-brand::before {
   content: "";
   display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-right: 8px;
+  width: 9px;
+  height: 9px;
+  margin-right: 9px;
   border-radius: 50%;
   background: var(--green);
+  border: 1px solid var(--ink);
   vertical-align: middle;
 }
 
@@ -129,16 +150,24 @@ button {
   display: none;
 }
 
+/* Ledger index tabs: bordered paper tabs that sit on the rule. */
 .topnav-link {
   display: inline-flex;
   align-items: center;
   min-height: 40px;
   padding: 0 14px;
-  border-radius: 10px;
+  border: 1px solid var(--line);
+  border-bottom: none;
+  border-radius: 3px 3px 0 0;
+  background: var(--panel2);
   color: var(--muted);
-  font-weight: 600;
-  font-size: 15px;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
   white-space: nowrap;
+  position: relative;
+  top: 2px;
 }
 
 /* On phones, keep brand + Sign out on row one and let the links wrap to a
@@ -146,43 +175,60 @@ button {
 @media (max-width: 560px) {
   .topnav {
     flex-wrap: wrap;
+    align-items: center;
     gap: 8px 8px;
-    padding: 10px 12px;
+    padding: 10px 12px 0;
   }
   .topnav-brand {
     margin-right: auto;
+    padding-bottom: 0;
     order: 0;
   }
   .topnav-signout {
     order: 1;
     flex-shrink: 0;
+    align-self: center;
+    margin-bottom: 0;
   }
+  /* Row two: full-width scrollable strip of index tabs. */
   .topnav-links {
     order: 2;
     flex-basis: 100%;
     margin-left: 0;
-    gap: 6px;
+    gap: 4px;
+    padding-top: 8px;
   }
   .topnav-link {
     padding: 0 12px;
-    font-size: 14px;
+    font-size: 12px;
+    top: 1px;
+  }
+  .topnav-link.on {
+    top: 1px;
   }
 }
 
 .topnav-link.on {
   color: var(--ink);
-  background: var(--panel2);
+  background: var(--panel);
+  border-color: var(--rule-strong);
+  box-shadow: 0 -2px 0 var(--red);
+  top: 3px;
 }
 
 .topnav-signout {
   min-height: 40px;
+  align-self: center;
+  margin-bottom: 6px;
   padding: 0 12px;
-  border-radius: 10px;
+  border-radius: 3px;
   background: transparent;
-  border: 1px solid var(--line);
-  color: var(--muted);
-  font-weight: 600;
-  font-size: 14px;
+  border: 1px solid var(--rule-strong);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
   cursor: pointer;
 }
 
@@ -194,19 +240,22 @@ button {
 
 .card {
   background: var(--panel);
-  border: 1px solid var(--line);
+  border: 1px solid var(--rule-strong);
   border-radius: var(--radius);
   padding: 16px;
   margin-bottom: 14px;
+  box-shadow: 0 1px 0 #d8cfbb;
 }
 
 .card-label {
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 6px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--line);
 }
 
 .big-num {
@@ -240,11 +289,14 @@ button {
   min-height: 48px;
   padding: 0 18px;
   border-radius: var(--radius);
-  border: 1px solid transparent;
+  border: 1px solid var(--rule-strong);
   background: var(--panel2);
   color: var(--ink);
-  font-size: 16px;
-  font-weight: 600;
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   cursor: pointer;
   transition: transform 0.05s ease, opacity 0.15s ease;
 }
@@ -258,16 +310,17 @@ button {
   cursor: default;
 }
 
+/* Green stamp button: inked fill, paper-light text. */
 .btn-primary {
   background: var(--green);
-  color: #06140c;
+  color: var(--panel);
   border-color: var(--green);
 }
 
 .btn-danger {
   background: transparent;
   color: var(--red);
-  border-color: var(--red-dim);
+  border-color: var(--red);
 }
 
 .btn-ghost {
@@ -297,12 +350,12 @@ button {
   width: 100%;
   min-height: 48px;
   padding: 12px 14px;
-  background: var(--panel2);
-  border: 1px solid var(--line);
+  background: var(--panel);
+  border: 1px solid var(--rule-strong);
   border-radius: var(--radius);
   color: var(--ink);
   font-size: 16px;
-  font-family: inherit;
+  font-family: var(--mono);
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -329,8 +382,9 @@ button {
 .input:focus,
 .select:focus,
 .textarea:focus {
-  border-color: var(--green);
-  box-shadow: 0 0 0 3px rgba(52, 217, 123, 0.2);
+  border-color: var(--ink);
+  background: #fffdf7;
+  box-shadow: inset 0 -2px 0 var(--ink);
 }
 
 .input::placeholder,
@@ -365,11 +419,12 @@ button {
 
 .seg {
   display: flex;
-  gap: 4px;
-  padding: 4px;
+  gap: 0;
+  padding: 0;
   background: var(--panel2);
-  border: 1px solid var(--line);
+  border: 1px solid var(--rule-strong);
   border-radius: var(--radius);
+  overflow: hidden;
 }
 
 .seg button {
@@ -377,18 +432,26 @@ button {
   min-height: 44px;
   padding: 0 12px;
   border: none;
-  border-radius: 10px;
+  border-left: 1px solid var(--line);
+  border-radius: 0;
   background: transparent;
   color: var(--muted);
-  font-size: 15px;
-  font-weight: 600;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
+.seg button:first-child {
+  border-left: none;
+}
+
 .seg button.on {
   background: var(--green);
-  color: #06140c;
+  color: var(--panel);
 }
 
 /* ---------- Transaction list ---------- */
@@ -410,25 +473,36 @@ button {
 
 .goal-hero {
   background: var(--panel);
-  border: 1px solid var(--line);
+  border: 1px solid var(--rule-strong);
   border-radius: var(--radius);
   padding: 20px;
   margin-bottom: 14px;
+  box-shadow: 0 1px 0 #d8cfbb;
 }
 
+/* Ruled meter: crisp inked frame with a faint tick down the middle. */
 .goal-track {
   width: 100%;
   height: 28px;
-  border-radius: 999px;
+  border-radius: 3px;
   background: var(--panel2);
-  border: 1px solid var(--line);
+  border: 1px solid var(--rule-strong);
   overflow: hidden;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent calc(10% - 1px),
+    rgba(125, 116, 92, 0.35) calc(10% - 1px),
+    rgba(125, 116, 92, 0.35) 10%
+  );
 }
 
+/* Confident green ink fill. */
 .goal-fill {
   height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #4ce78d 0%, var(--green) 55%, var(--green-dim) 100%);
+  border-radius: 2px 0 0 2px;
+  background: var(--green);
+  border-right: 2px solid var(--ink);
   transition: width 0.4s ease;
 }
 
@@ -450,19 +524,14 @@ button {
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: radial-gradient(
-      120% 80% at 50% 0%,
-      rgba(52, 217, 123, 0.08) 0%,
-      transparent 60%
-    ),
-    var(--bg);
+  background: var(--bg);
 }
 
 .login-box {
   width: 100%;
   max-width: 380px;
   background: var(--panel);
-  border: 1px solid var(--line);
+  border: 1px solid var(--rule-strong);
   border-radius: var(--radius);
   padding: 28px 24px;
 }
@@ -481,6 +550,7 @@ button {
   margin-right: 10px;
   border-radius: 50%;
   background: var(--green);
+  border: 1px solid var(--ink);
   vertical-align: middle;
 }
 
@@ -498,9 +568,9 @@ button {
 .login-error {
   margin-bottom: 14px;
   padding: 10px 12px;
-  border-radius: 10px;
-  background: rgba(255, 93, 93, 0.1);
-  border: 1px solid var(--red-dim);
+  border-radius: var(--radius);
+  background: rgba(163, 51, 34, 0.08);
+  border-left: 3px solid var(--red);
   color: var(--red);
   font-size: 14px;
 }
