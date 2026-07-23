@@ -3,6 +3,7 @@
 import './recurring.css';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { useRealtime } from '../../lib/realtime';
 import { money, productLabel, shortDate } from '../../lib/catalog';
 
 export default function RecurringPage() {
@@ -29,6 +30,9 @@ export default function RecurringPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Live updates: reload when recurring plans change on any device.
+  useRealtime(['recurring'], load);
 
   const active = useMemo(() => plans.filter((p) => p.active), [plans]);
   const inactive = useMemo(() => plans.filter((p) => !p.active), [plans]);

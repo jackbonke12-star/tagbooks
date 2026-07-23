@@ -3,6 +3,7 @@
 import './inventory.css';
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { useRealtime } from '../../lib/realtime';
 import { ITEMS, itemLabel, shortDate } from '../../lib/catalog';
 
 const STATUS_LABEL = { waiting: 'Waiting', printing: 'Printing', done: 'Done' };
@@ -38,6 +39,9 @@ export default function InventoryPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Live updates: reload when inventory or print jobs change on any device.
+  useRealtime(['inventory', 'print_queue'], load);
 
   const qtyOf = useCallback(
     (item) => {

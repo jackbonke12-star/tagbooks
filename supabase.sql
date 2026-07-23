@@ -141,3 +141,14 @@ create policy "recurring_select" on recurring for select to anon, authenticated 
 create policy "recurring_insert" on recurring for insert to anon, authenticated with check (true);
 create policy "recurring_update" on recurring for update to anon, authenticated using (true) with check (true);
 create policy "recurring_delete" on recurring for delete to anon, authenticated using (true);
+
+-- ---------- Realtime ----------
+-- Supabase Realtime only streams changes for tables in the supabase_realtime
+-- publication. Add each table so open devices update live without a refresh.
+-- Per-table so a table already in the publication does not abort the whole run.
+alter publication supabase_realtime add table sales;
+alter publication supabase_realtime add table expenses;
+alter publication supabase_realtime add table clients;
+alter publication supabase_realtime add table inventory;
+alter publication supabase_realtime add table print_queue;
+alter publication supabase_realtime add table recurring;

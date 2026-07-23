@@ -3,6 +3,7 @@
 import './clients.css';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { useRealtime } from '../../lib/realtime';
 import { STAGES, stageLabel, localToday, shortDate } from '../../lib/catalog';
 
 // Build a tel: href by stripping everything except digits, then add a
@@ -42,6 +43,9 @@ export default function ClientsPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Live updates: reload when clients change on any device.
+  useRealtime(['clients'], load);
 
   const startEdit = useCallback((client) => {
     setEditing(client);

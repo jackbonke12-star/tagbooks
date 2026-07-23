@@ -2,8 +2,9 @@
 
 import './dashboard.css';
 import Link from 'next/link';
-import { useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
+import { useRealtime } from '../lib/realtime';
 import {
   money,
   monthName,
@@ -39,16 +40,13 @@ export default function DashboardPage() {
   const year = now.getFullYear();
   const monthIndex = now.getMonth();
 
-  useEffect(() => {
-    let active = true;
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError('');
 
-    async function load() {
-      setLoading(true);
-      setError('');
+    const { first, last } = monthRange(year, monthIndex);
 
-      const { first, last } = monthRange(year, monthIndex);
-
-      const today = localToday();
+    const today = localToday();
 
       const [
         salesRes,
@@ -99,8 +97,6 @@ export default function DashboardPage() {
             .order('created_at', { ascending: true }),
         ]);
 
-      if (!active) return;
-
       const firstErr =
         salesRes.error ||
         expensesRes.error ||
@@ -129,13 +125,17 @@ export default function DashboardPage() {
       setFeed(merged.slice(0, 5));
 
       setLoading(false);
-    }
-
-    load();
-    return () => {
-      active = false;
-    };
   }, [year, monthIndex]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  // Live updates: reload when any dashboard table changes on any device.
+  useRealtime(
+    ['sales', 'expenses', 'clients', 'recurring', 'print_queue'],
+    load
+  );
 
   const revenue = useMemo(
     () => sum(sales.map((s) => s.amount)),

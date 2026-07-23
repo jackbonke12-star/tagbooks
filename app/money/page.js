@@ -3,6 +3,7 @@
 import './money.css';
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
+import { useRealtime } from '../../lib/realtime';
 import {
   PRODUCTS,
   CATEGORIES,
@@ -69,6 +70,9 @@ export default function MoneyPage() {
   useEffect(() => {
     loadMonth();
   }, [loadMonth]);
+
+  // Live updates: reload the month when sales or expenses change on any device.
+  useRealtime(['sales', 'expenses'], loadMonth);
 
   // Edit target: null, or { kind, ...row }.
   const [editing, setEditing] = useState(null);
