@@ -82,6 +82,39 @@
   font-size: 13px;
 }
 
+/* Quiet one-time platform note shown when in-app NFC writing is unavailable
+   (iPhone / desktop). Reads like a faint ledger annotation. */
+.coins-nfc-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  border-left: 3px solid var(--line);
+  background: var(--panel2);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+}
+
+.coins-nfc-note-tag {
+  flex: 0 0 auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 1px 6px;
+  margin-top: 1px;
+}
+
+.coins-nfc-note-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
 /* Empty state: quiet ledger line. */
 .coins-empty-line {
   font-size: 14px;
@@ -186,6 +219,51 @@
   letter-spacing: 0.02em;
 }
 
+/* In-app NFC write: button + status stamp. */
+.coin-nfc {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.coin-write {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+/* Status lines read as small ledger stamps under the button. */
+.coin-stamp {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  border-left: 3px solid var(--line);
+  border-radius: 3px;
+  padding: 6px 10px;
+  overflow-wrap: anywhere;
+}
+
+.coin-stamp-writing {
+  color: var(--muted);
+  background: var(--panel2);
+  border-left-color: var(--rule-strong);
+}
+
+.coin-stamp-written {
+  color: var(--green);
+  background: rgba(47, 93, 58, 0.08);
+  border-left-color: var(--green);
+}
+
+.coin-stamp-error {
+  color: var(--red);
+  background: rgba(163, 51, 34, 0.08);
+  border-left-color: var(--red);
+}
+
 /* ---------- Print sheet: high-contrast, cut-friendly ---------- */
 @media print {
   /* Hide everything but the coin grid: nav, header, search, buttons. */
@@ -245,9 +323,11 @@
     font-size: 13px;
   }
 
-  /* Print only QR + business name: drop URL, copy button, and hint. */
+  /* Print only QR + business name: drop URL, copy button, hint, and the
+     in-app NFC write button + status stamps. */
   .coin-url-row,
-  .coin-hint {
+  .coin-hint,
+  .coin-nfc {
     display: none !important;
   }
 }
