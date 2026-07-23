@@ -183,7 +183,7 @@ export default function DashboardPage() {
     return (
       <div className="dash">
         <div className="card goal-hero">
-          <div className="card-label">{label}</div>
+          <div className="goal-hero-label">{label}</div>
           <div className="muted">Loading…</div>
         </div>
       </div>
@@ -232,10 +232,13 @@ export default function DashboardPage() {
         </div>
       ) : null}
 
-      {/* HERO */}
+      {/* HERO — the centerpiece: the month's revenue against the $10k goal. */}
       <div className="card goal-hero">
-        <div className="card-label">{label}</div>
-        <div className="big-num green">{money(revenue)}</div>
+        <div className="goal-hero-top">
+          <div className="goal-hero-label">{label}</div>
+          <div className="goal-hero-target muted">Target {money(GOAL)}</div>
+        </div>
+        <div className="goal-hero-num green">{money(revenue)}</div>
         <div className="goal-track">
           <div
             className={`goal-fill${overGoal ? ' goal-fill-win' : ''}`}
@@ -243,8 +246,9 @@ export default function DashboardPage() {
           />
         </div>
         <div className="goal-caption muted">
-          {money(revenue)} of {money(GOAL)} — {Math.round(pct)}%
-          {overGoal ? ' — goal smashed!' : ''}
+          {money(revenue)} of {money(GOAL)} &middot;{' '}
+          <span className="goal-pct">{Math.round(pct)}%</span>
+          {overGoal ? ' — goal smashed' : ''}
         </div>
       </div>
 

@@ -17,17 +17,12 @@
 }
 
 .printer-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  display: block;
 }
 
+/* Title look now comes from the shared .page-title in globals.css. */
 .printer-title {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  width: 100%;
 }
 
 /* Panel keeps a stable footprint so the loading/connected swap doesn't lurch. */

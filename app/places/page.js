@@ -394,10 +394,9 @@ export default function PlacesPage() {
 
   return (
     <div className="places" ref={formTopRef}>
-      <div className="card places-intro">
-        <div className="card-label">Places to hit</div>
-        <h1 className="places-title">PLACES TO HIT</h1>
-        <p className="places-lede muted">
+      <div className="card places-intro page-head">
+        <h1 className="places-title page-title">PLACES TO HIT</h1>
+        <p className="places-lede page-title-sub">
           Local businesses in NW Calgary to pitch. Tap directions to navigate
           there.
         </p>

@@ -3,7 +3,7 @@
 .dash {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 /* Phones: tighten the vertical rhythm so Partner Settlement, follow-ups and
@@ -33,10 +33,66 @@
   font-size: 14px;
 }
 
+/* ---------- Goal hero (the dashboard centerpiece) ----------
+   A confident, ledger-styled statement of the month against the $10k goal:
+   a small-caps label paired with the target on the same rule line, an
+   oversized inked figure, the ruled meter, then a caption. Token-based. */
+.goal-hero-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.goal-hero-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.goal-hero-target {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Bigger, more confident hero figure than the standard .big-num. Reserves its
+   own line height so a realtime money change never shifts the block. */
+.goal-hero-num {
+  font-size: 46px;
+  font-weight: 700;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  overflow-wrap: anywhere;
+  min-height: calc(46px * 1.05);
+  margin-bottom: 14px;
+}
+
+@media (min-width: 700px) {
+  .goal-hero-num {
+    font-size: 56px;
+    min-height: calc(56px * 1.05);
+  }
+}
+
 /* Goal hero caption + brighter (goal-smashed) win fill. */
 .goal-caption {
   margin-top: 10px;
   font-size: 14px;
+}
+
+.goal-pct {
+  font-weight: 700;
+  color: var(--ink);
 }
 
 .goal-fill-win {
@@ -81,11 +137,14 @@
   border: 1px solid var(--rule-strong);
   border-radius: var(--radius);
   padding: 12px 14px;
-  box-shadow: 0 1px 0 #d8cfbb;
+  box-shadow: 0 1px 0 var(--card-lift, #d8cfbb);
   min-width: 0;
   /* Hold a constant tile height so a changing money figure (realtime) never
      grows or shrinks the tile. Label row + one value line + padding. */
-  min-height: 72px;
+  min-height: 76px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .stat-tile-label {
@@ -94,7 +153,9 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--line);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -127,17 +188,20 @@
 /* Settlement card. */
 .settle-line {
   font-size: 20px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--ink);
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .settle-totals {
   display: flex;
   gap: 18px;
-  margin-top: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
   font-size: 13px;
   flex-wrap: wrap;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Print queue - waiting mini list. */

@@ -345,9 +345,44 @@ button {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 6px;
-  padding-bottom: 5px;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
   border-bottom: 1px solid var(--line);
+}
+
+/* ---------- Unified page title ----------
+   Every top-level page heading (h1/h2 like "PLACES TO HIT", "3D PRINTER")
+   shares one ledger treatment: a small-caps eyebrow rule above, a confident
+   uppercase monospace headline, sitting on a double rule. Token-based so both
+   themes stay correct. Pages opt in by adding `.page-title` to the heading and
+   wrapping it (optionally) in `.page-head`. */
+.page-head {
+  margin-bottom: 4px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  line-height: 1.15;
+  padding-bottom: 10px;
+  /* Ledger double-rule under every page title for a consistent, bookish edge. */
+  border-bottom: 3px double var(--rule-strong);
+}
+
+.page-title-sub {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+@media (min-width: 700px) {
+  .page-title {
+    font-size: 25px;
+  }
 }
 
 .big-num {
@@ -654,7 +689,7 @@ button {
   /* Reserve the hero's loaded footprint (label + big figure + meter + caption)
      so the "Loading..." state and the loaded state occupy the same height and
      the swap doesn't lurch the page. */
-  min-height: 160px;
+  min-height: 200px;
 }
 
 /* Ruled meter: crisp inked frame with a faint tick down the middle. */

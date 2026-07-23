@@ -66,17 +66,9 @@
   min-height: 96px;
 }
 
+/* Title + lede look now come from the shared .page-title / .page-title-sub. */
 .places-title {
-  margin: 2px 0 6px;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.places-lede {
-  margin: 0;
-  font-size: 14px;
+  width: 100%;
 }
 
 /* ---------- Target ideas quick-fill (inside the add form) ---------- */

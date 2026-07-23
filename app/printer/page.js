@@ -101,8 +101,8 @@ export default function PrinterPage() {
 
   return (
     <div className="printer">
-      <div className="printer-head">
-        <h1 className="printer-title">3D Printer</h1>
+      <div className="printer-head page-head">
+        <h1 className="printer-title page-title">3D Printer</h1>
       </div>
 
       {loading && !status ? (

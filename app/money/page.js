@@ -436,6 +436,13 @@ function SaleForm({ editing, onSaved, onCancelEdit }) {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Client typeahead: what's typed in the search box + whether the dropdown is
+  // open. The search box only picks a client; the editable "Client name" field
+  // below is still the source of truth for the saved name.
+  const [clientQuery, setClientQuery] = useState('');
+  const [clientOpen, setClientOpen] = useState(false);
+  const clientSearchRef = useRef(null);
+
   const isEdit = !!editing;
 
   // Load the client list for the optional picker (business_name order).
@@ -479,6 +486,54 @@ function SaleForm({ editing, onSaved, onCancelEdit }) {
     const c = clients.find((x) => x.id === value);
     if (c) setClientName(c.business_name || '');
   }
+
+  // Case-insensitive substring match on business_name. Empty query shows all
+  // (capped) so the box also works as a plain picker.
+  const clientMatches = useMemo(() => {
+    const q = clientQuery.trim().toLowerCase();
+    const list = q
+      ? clients.filter((c) =>
+          (c.business_name || '').toLowerCase().includes(q)
+        )
+      : clients;
+    return list.slice(0, 30);
+  }, [clients, clientQuery]);
+
+  // Select a client from the dropdown: link the id, auto-fill the name, and
+  // reset the search box to a clean, closed state.
+  function pickClient(c) {
+    onClientChange(c.id);
+    setClientQuery('');
+    setClientOpen(false);
+  }
+
+  // Clear the linked client (back to a manual/"No client" sale). The editable
+  // client name field is left as-is so a typed name isn't wiped.
+  function clearClient() {
+    setClientId('');
+    setClientQuery('');
+    setClientOpen(false);
+  }
+
+  // Close the dropdown when focus/click leaves the search cluster.
+  useEffect(() => {
+    if (!clientOpen) return;
+    function onDocPointer(e) {
+      if (
+        clientSearchRef.current &&
+        !clientSearchRef.current.contains(e.target)
+      ) {
+        setClientOpen(false);
+      }
+    }
+    document.addEventListener('pointerdown', onDocPointer);
+    return () => document.removeEventListener('pointerdown', onDocPointer);
+  }, [clientOpen]);
+
+  // The currently linked client (for the "linked" confirmation chip).
+  const linkedClient = clientId
+    ? clients.find((x) => x.id === clientId)
+    : null;
 
   function onProductChange(value) {
     setProduct(value);
@@ -588,19 +643,60 @@ function SaleForm({ editing, onSaved, onCancelEdit }) {
           />
         </div>
         <div className="field">
-          <label className="label">Client</label>
-          <select
-            className="select"
-            value={clientId}
-            onChange={(e) => onClientChange(e.target.value)}
-          >
-            <option value="">No client</option>
-            {clients.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.business_name}
-              </option>
-            ))}
-          </select>
+          <label className="label">Find client</label>
+          <div className="client-search" ref={clientSearchRef}>
+            <input
+              type="text"
+              className="input"
+              value={clientQuery}
+              placeholder="Search business name…"
+              autoComplete="off"
+              onFocus={() => setClientOpen(true)}
+              onChange={(e) => {
+                setClientQuery(e.target.value);
+                setClientOpen(true);
+              }}
+            />
+            {clientOpen ? (
+              <div className="client-search-menu" role="listbox">
+                {clientMatches.length === 0 ? (
+                  <div className="client-search-empty muted">
+                    No matching clients
+                  </div>
+                ) : (
+                  clientMatches.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      role="option"
+                      aria-selected={c.id === clientId}
+                      className={`client-search-item${
+                        c.id === clientId ? ' on' : ''
+                      }`}
+                      onClick={() => pickClient(c)}
+                    >
+                      {c.business_name}
+                    </button>
+                  ))
+                )}
+              </div>
+            ) : null}
+          </div>
+          {linkedClient ? (
+            <div className="client-linked">
+              <span className="client-linked-tag">Linked</span>
+              <span className="client-linked-name">
+                {linkedClient.business_name}
+              </span>
+              <button
+                type="button"
+                className="client-linked-clear"
+                onClick={clearClient}
+              >
+                Clear
+              </button>
+            </div>
+          ) : null}
         </div>
       </div>
 
