@@ -11,10 +11,7 @@ Next.js (App Router) + Supabase. Phones-first. Runs on port 3003.
    If you already ran `supabase.sql` before the clients update, run `migration-clients.sql` instead.
    If your database already ran `supabase.sql`/`migration-clients.sql`, run `migration-phase2.sql` to add inventory, print queue, and recurring.
 
-3. **Disable email confirmations** so the two partners can sign up instantly:
-   Authentication -> Providers -> Email -> turn off "Confirm email" -> Save.
-
-4. **Add your keys.** Copy `.env.local.example` to `.env.local` and fill in the two values
+3. **Add your keys.** Copy `.env.local.example` to `.env.local` and fill in the two values
    from Supabase (Project Settings -> API):
 
    ```
@@ -22,22 +19,25 @@ Next.js (App Router) + Supabase. Phones-first. Runs on port 3003.
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-public-key
    ```
 
-5. **Run it.**
+4. **Run it.**
 
    ```
    npm install && npm run dev
    ```
 
-   Open http://localhost:3003, use "Create account" on the login screen to make
-   your two accounts (Jack and Jackson), then sign in.
+   Open http://localhost:3003 - it goes straight to the dashboard, no login.
 
-6. **Deploy.** Push the repo to GitHub, import it in Vercel, set the same two env vars
+5. **Deploy.** Push the repo to GitHub, import it in Vercel, set the same two env vars
    (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`) in the Vercel project
    settings, then deploy.
 
 ## Troubleshooting
 
-**Data empty or auth errors?** Check `.env.local` (and the Vercel env vars) hold the correct
-URL and anon key, and confirm `supabase.sql` ran so the tables and RLS policies exist. Data is
-shared across all logged-in users; if a query returns nothing, the policies or env vars are the
-usual cause.
+**Data empty?** Check `.env.local` (and the Vercel env vars) hold the correct URL and anon key,
+and confirm `supabase.sql` ran so the tables and RLS policies exist. If a query returns nothing,
+the policies or env vars are the usual cause.
+
+**Open access, no login.** This app has no authentication - it reads and writes with the public
+anon key and RLS policies allow the `anon` role. That is fine on your own machine. If you deploy
+it to a public URL, anyone who finds that URL can view and edit all data. Keep it private (local
+only, or a Vercel deploy behind Vercel password protection) unless you add auth back.

@@ -20,10 +20,10 @@ create index clients_next_followup_idx on clients (next_followup);
 -- ---------- Row Level Security ----------
 alter table clients enable row level security;
 
-create policy "clients_select" on clients for select to authenticated using (true);
-create policy "clients_insert" on clients for insert to authenticated with check (true);
-create policy "clients_update" on clients for update to authenticated using (true) with check (true);
-create policy "clients_delete" on clients for delete to authenticated using (true);
+create policy "clients_select" on clients for select to anon, authenticated using (true);
+create policy "clients_insert" on clients for insert to anon, authenticated with check (true);
+create policy "clients_update" on clients for update to anon, authenticated using (true) with check (true);
+create policy "clients_delete" on clients for delete to anon, authenticated using (true);
 
 -- ---------- Link sales to clients ----------
 alter table sales add column client_id uuid references clients(id) on delete set null;

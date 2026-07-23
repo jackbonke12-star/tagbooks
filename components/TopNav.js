@@ -1,17 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { supabase } from '../lib/supabase';
+import { usePathname } from 'next/navigation';
 
 export default function TopNav() {
   const pathname = usePathname();
-  const router = useRouter();
-
-  async function signOut() {
-    await supabase.auth.signOut();
-    router.push('/login');
-  }
 
   const isDash = pathname === '/';
   const isClients = pathname === '/clients' || pathname.startsWith('/clients/');
@@ -50,9 +43,6 @@ export default function TopNav() {
           Recurring
         </Link>
       </div>
-      <button className="topnav-signout" onClick={signOut} type="button">
-        Sign out
-      </button>
     </nav>
   );
 }

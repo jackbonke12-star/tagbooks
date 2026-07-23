@@ -47,19 +47,19 @@ alter table print_queue enable row level security;
 alter table recurring enable row level security;
 
 -- Inventory policies (select / insert / update / delete for authenticated users).
-create policy "inventory_select" on inventory for select to authenticated using (true);
-create policy "inventory_insert" on inventory for insert to authenticated with check (true);
-create policy "inventory_update" on inventory for update to authenticated using (true) with check (true);
-create policy "inventory_delete" on inventory for delete to authenticated using (true);
+create policy "inventory_select" on inventory for select to anon, authenticated using (true);
+create policy "inventory_insert" on inventory for insert to anon, authenticated with check (true);
+create policy "inventory_update" on inventory for update to anon, authenticated using (true) with check (true);
+create policy "inventory_delete" on inventory for delete to anon, authenticated using (true);
 
 -- Print queue policies (select / insert / update / delete for authenticated users).
-create policy "print_queue_select" on print_queue for select to authenticated using (true);
-create policy "print_queue_insert" on print_queue for insert to authenticated with check (true);
-create policy "print_queue_update" on print_queue for update to authenticated using (true) with check (true);
-create policy "print_queue_delete" on print_queue for delete to authenticated using (true);
+create policy "print_queue_select" on print_queue for select to anon, authenticated using (true);
+create policy "print_queue_insert" on print_queue for insert to anon, authenticated with check (true);
+create policy "print_queue_update" on print_queue for update to anon, authenticated using (true) with check (true);
+create policy "print_queue_delete" on print_queue for delete to anon, authenticated using (true);
 
 -- Recurring policies (select / insert / update / delete for authenticated users).
-create policy "recurring_select" on recurring for select to authenticated using (true);
-create policy "recurring_insert" on recurring for insert to authenticated with check (true);
-create policy "recurring_update" on recurring for update to authenticated using (true) with check (true);
-create policy "recurring_delete" on recurring for delete to authenticated using (true);
+create policy "recurring_select" on recurring for select to anon, authenticated using (true);
+create policy "recurring_insert" on recurring for insert to anon, authenticated with check (true);
+create policy "recurring_update" on recurring for update to anon, authenticated using (true) with check (true);
+create policy "recurring_delete" on recurring for delete to anon, authenticated using (true);
