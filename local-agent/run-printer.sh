@@ -5,7 +5,8 @@
 # Meant to be launched (and kept alive) by a LaunchAgent so it survives reboots.
 
 export PATH=/opt/homebrew/bin:/opt/homebrew/share/google-cloud-sdk/bin:/usr/local/bin:/usr/bin:/bin
-REPO="/Users/jackbonke/projects/tagbooks"
+# derive repo root from this script's location so it works on any machine
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOG="$HOME/.tagbooks-printer.log"
 SB_URL="https://noildgtslvubjkifcifm.supabase.co"
 SB_KEY="sb_publishable_n9re43hcpJVeMl-rIUeSYA_U0ldjDSm"

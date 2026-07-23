@@ -14,6 +14,7 @@ const https = require('https');
 const express = require('express');
 const multer = require('multer');
 const mqtt = require('mqtt');
+const { Client: FtpClient } = require('basic-ftp');
 
 const MODE = (process.env.BAMBU_MODE || 'cloud').toLowerCase();
 const SECRET = process.env.AGENT_SHARED_SECRET || '';
@@ -124,16 +125,29 @@ function publicBase() {
   });
 }
 
-// send a print command that tells the printer to fetch the served file and print it
-function sendPrint(fileName, base) {
-  const url = `${base.replace(/\/$/, '')}/files/${encodeURIComponent(fileName)}`;
+// LAN: upload the sliced file straight to the printer over FTPS.
+async function ftpUpload(localPath, name) {
+  const ftp = new FtpClient(15000);
+  try {
+    await ftp.access({
+      host: LAN.host, port: 990, user: 'bblp', password: LAN.code,
+      secure: 'implicit', secureOptions: { rejectUnauthorized: false },
+    });
+    await ftp.uploadFrom(localPath, name);
+  } finally {
+    ftp.close();
+  }
+}
+
+// send a project_file print command pointing at the given url
+function sendPrint(fileName, url) {
   const cmd = {
     print: {
       sequence_id: '0', command: 'project_file',
       param: 'Metadata/plate_1.gcode', url,
       subtask_name: fileName, md5: '',
       bed_type: 'auto', timelapse: false, bed_leveling: true,
-      flow_cali: false, vibration_cali: true, layer_inspect: false,
+      flow_cali: false, vibration_cali: true, layer_inspect: true,
       use_ams: false,
       profile_id: '0', project_id: '0', subtask_id: '0', task_id: '0',
     },
@@ -172,16 +186,24 @@ app.post('/upload', upload.single('file'), async (req, res) => {
   const orig = (req.file.originalname || 'model.3mf').replace(/[^\w.\-]/g, '_');
   const finalPath = path.join(UPLOAD_DIR, orig);
   try { fs.renameSync(req.file.path, finalPath); } catch { /* keep temp name */ }
-  const base = await publicBase();
-  if (!base) return res.status(200).json({ ok: false, error: 'no public url yet - try again in a moment' });
+
   if (!/\.3mf$/i.test(orig)) {
-    return res.json({ ok: true, uploaded: orig, printed: false, note: 'Saved. Auto-print supports sliced .3mf files; send a .3mf exported from Bambu Studio to start a print.' });
+    return res.json({ ok: true, uploaded: orig, printed: false, note: 'Saved. Send a sliced .3mf exported from Bambu Studio to start a print.' });
   }
+
   try {
-    const url = sendPrint(orig, base);
-    res.json({ ok: true, uploaded: orig, printed: true, url, note: 'Print command sent - watch the printer for the first job.' });
+    if (MODE === 'lan') {
+      await ftpUpload(finalPath, orig);
+      const url = sendPrint(orig, `ftp:///${orig}`);
+      return res.json({ ok: true, uploaded: orig, printed: true, url, note: 'Uploaded to the printer and print started - watch the printer.' });
+    }
+    // cloud: best-effort; Bambu printers may not fetch an external URL
+    const base = await publicBase();
+    if (!base) return res.json({ ok: false, error: 'no public url yet - try again in a moment' });
+    const url = sendPrint(orig, `${base.replace(/\/$/, '')}/files/${encodeURIComponent(orig)}`);
+    return res.json({ ok: true, uploaded: orig, printed: true, url, note: 'Command sent over cloud. If it does not start, the agent must run on the printer network (LAN setup).' });
   } catch (e) {
-    res.status(200).json({ ok: false, error: 'print command failed: ' + e.message });
+    return res.status(200).json({ ok: false, error: 'print failed: ' + e.message });
   }
 });
 
