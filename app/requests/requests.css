@@ -132,6 +132,110 @@
   border: 1px solid var(--line);
 }
 
+/* File input on the add form. */
+.req-file-input {
+  font-size: 16px;
+  color: var(--ink);
+}
+
+.req-file-input::file-selector-button {
+  min-height: 44px;
+  margin-right: 10px;
+  padding: 0 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--panel2);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.req-file-hint {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.req-file-names {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+
+.req-file-name {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Attached-file links on a request row. */
+.req-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.req-file {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 2px 8px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--panel2);
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.req-file:hover {
+  border-color: var(--green);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Per-row "Attach file" control (hidden native input, styled trigger). */
+.req-attach {
+  margin-top: 2px;
+}
+
+.req-attach-input {
+  display: none;
+}
+
+.req-attach-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.req-attach-btn:hover:not(:disabled) {
+  color: var(--ink);
+  border-color: var(--rule-strong);
+}
+
+.req-attach-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
 /* Priority rubber-stamp chip (mirrors the Places priority chip). */
 .chip {
   display: inline-flex;

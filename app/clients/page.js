@@ -218,6 +218,7 @@ export default function ClientsPage() {
                         >
                           Review link
                         </a>
+                        <CopyLinkButton url={client.google_review_url} />
                         <Link className="review-qr" href="/coins">
                           QR
                         </Link>
@@ -259,6 +260,48 @@ export default function ClientsPage() {
   );
 }
 
+/* ---------------- Copy-link button ---------------- */
+
+// Copies a URL to the clipboard, flashing a brief "Copied" state (~1.5s).
+// Guards against undefined URLs and clipboards that aren't available.
+function CopyLinkButton({ url }) {
+  const [copied, setCopied] = useState(false);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  async function copy() {
+    if (!url) return;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        return;
+      }
+    } catch {
+      return;
+    }
+    setCopied(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setCopied(false), 1500);
+  }
+
+  return (
+    <button
+      type="button"
+      className={`review-copy${copied ? ' copied' : ''}`}
+      onClick={copy}
+      aria-label="Copy review link"
+    >
+      {copied ? 'Copied' : 'Copy link'}
+    </button>
+  );
+}
+
 /* ---------------- Client form ---------------- */
 
 function ClientForm({ editing, onSaved, onCancelEdit }) {
@@ -273,7 +316,61 @@ function ClientForm({ editing, onSaved, onCancelEdit }) {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Pull-from-Places: search the prospects table and autofill from a pick.
+  const [placeSearch, setPlaceSearch] = useState('');
+  const [placeResults, setPlaceResults] = useState([]);
+  const [placesOpen, setPlacesOpen] = useState(false);
+
   const isEdit = !!editing;
+
+  // Debounced prospects search: only query when the term is >= 2 chars. A
+  // stale flag keeps out-of-order responses from overwriting fresher results.
+  useEffect(() => {
+    const term = placeSearch.trim();
+    if (term.length < 2) {
+      setPlaceResults([]);
+      setPlacesOpen(false);
+      return undefined;
+    }
+    let stale = false;
+    const timer = setTimeout(async () => {
+      const { data, error: searchError } = await supabase
+        .from('prospects')
+        .select()
+        .ilike('name', `%${term}%`)
+        .limit(8);
+      if (stale) return;
+      if (searchError) {
+        setPlaceResults([]);
+        setPlacesOpen(false);
+        return;
+      }
+      setPlaceResults(data || []);
+      setPlacesOpen(true);
+    }, 200);
+    return () => {
+      stale = true;
+      clearTimeout(timer);
+    };
+  }, [placeSearch]);
+
+  // Autofill the client fields from a picked prospect. business_type + city go
+  // into notes only when notes is currently empty.
+  function pickPlace(place) {
+    setBusinessName(place.name || '');
+    setPhone(place.phone || '');
+    setAddress(place.address || '');
+    setGoogleReviewUrl(place.google_review_url || '');
+    if (!notes.trim()) {
+      const summary = [place.business_type, place.city]
+        .filter(Boolean)
+        .join(' - ');
+      if (summary) setNotes(summary);
+    }
+    setPlaceSearch('');
+    setPlaceResults([]);
+    setPlacesOpen(false);
+  }
 
   useEffect(() => {
     if (editing) {
@@ -345,6 +442,45 @@ function ClientForm({ editing, onSaved, onCancelEdit }) {
   return (
     <form className="card add-form" onSubmit={submit}>
       <div className="card-label">{isEdit ? 'Edit client' : 'New client'}</div>
+
+      {!isEdit ? (
+        <div className="field place-pull">
+          <label className="label">Pull from Places</label>
+          <input
+            type="text"
+            className="input"
+            value={placeSearch}
+            placeholder="Search a scouted business to autofill"
+            autoComplete="off"
+            onChange={(e) => setPlaceSearch(e.target.value)}
+            onFocus={() => {
+              if (placeResults.length) setPlacesOpen(true);
+            }}
+          />
+          {placesOpen && placeResults.length ? (
+            <div className="place-pull-list">
+              {placeResults.map((p) => {
+                const sub = [p.business_type, p.city]
+                  .filter(Boolean)
+                  .join(' - ');
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className="place-pull-item"
+                    onClick={() => pickPlace(p)}
+                  >
+                    <span className="place-pull-name">{p.name}</span>
+                    {sub ? (
+                      <span className="place-pull-sub">{sub}</span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="grid2">
         <div className="field">

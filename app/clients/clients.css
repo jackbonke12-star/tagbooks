@@ -52,6 +52,63 @@
   }
 }
 
+/* Pull-from-Places search + dropdown in the add-client form. */
+.place-pull {
+  position: relative;
+}
+
+.place-pull .input {
+  width: 100%;
+  font-size: 16px;
+}
+
+.place-pull-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  margin-top: 4px;
+  background: var(--panel);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.place-pull-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.place-pull-item:last-child {
+  border-bottom: none;
+}
+
+.place-pull-item:hover {
+  background: var(--panel2);
+}
+
+.place-pull-name {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.place-pull-sub {
+  font-size: 13px;
+  color: var(--muted);
+}
+
 /* Stage filter: allow the segmented control to wrap on narrow screens. */
 .stage-filter {
   flex-wrap: wrap;
@@ -155,6 +212,34 @@
 
 .review-link:hover {
   background: rgba(43, 122, 76, 0.08);
+}
+
+/* Copy-link button beside the review link. Ghost stamp, 44px tap target. */
+.review-copy {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.review-copy:hover {
+  color: var(--ink);
+  border-color: var(--rule-strong);
+}
+
+.review-copy.copied {
+  color: var(--green);
+  border-color: var(--green);
 }
 
 /* Review link + subtle QR shortcut to the Coins page. */

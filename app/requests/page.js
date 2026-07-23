@@ -1,7 +1,7 @@
 'use client';
 
 import './requests.css';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useRealtime } from '../../lib/realtime';
 import { shortDate } from '../../lib/catalog';
@@ -36,6 +36,42 @@ const PRIORITY_RANK = { high: 0, medium: 1, low: 2 };
 
 // Optional request-type suggestions for the datalist.
 const REQ_TYPES = ['Feature', 'Bug', 'Idea', 'Chore'];
+
+// Storage bucket for request attachments (public: links are readable later).
+const FILES_BUCKET = 'request-files';
+
+// Make a filename safe for a storage key: keep letters, digits, dot, dash,
+// underscore; collapse everything else to a dash.
+function safeFileName(name) {
+  return (
+    String(name || 'file')
+      .replace(/[^a-zA-Z0-9._-]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'file'
+  );
+}
+
+// Upload a list of files for a request id, returning [{name, url}] for each
+// that uploaded successfully. Throws on the first hard failure so callers can
+// surface it. Paths are unique: `${requestId}/${Date.now()}-i-${safeName}`.
+async function uploadRequestFiles(requestId, files) {
+  const out = [];
+  let i = 0;
+  for (const file of files) {
+    const path = `${requestId}/${Date.now()}-${i}-${safeFileName(file.name)}`;
+    i += 1;
+    const { error: upErr } = await supabase.storage
+      .from(FILES_BUCKET)
+      .upload(path, file);
+    if (upErr) {
+      throw new Error(upErr.message || 'File upload failed.');
+    }
+    const { data: pub } = supabase.storage
+      .from(FILES_BUCKET)
+      .getPublicUrl(path);
+    out.push({ name: file.name, url: pub?.publicUrl || '' });
+  }
+  return out;
+}
 
 export default function RequestsPage() {
   const [requests, setRequests] = useState([]);
@@ -98,6 +134,34 @@ export default function RequestsPage() {
         setLoadError(error.message || 'Failed to delete request.');
         return;
       }
+      load();
+    },
+    [load]
+  );
+
+  // Attach one or more files to an existing request: upload, then merge the
+  // new {name, url} entries onto the row's current files array and update it.
+  const attachToExisting = useCallback(
+    async (req, fileList) => {
+      const files = Array.from(fileList || []);
+      if (!files.length) return;
+      let uploaded;
+      try {
+        uploaded = await uploadRequestFiles(req.id, files);
+      } catch (err) {
+        setLoadError(err.message || 'Failed to attach file.');
+        return;
+      }
+      const merged = [...(Array.isArray(req.files) ? req.files : []), ...uploaded];
+      const { error } = await supabase
+        .from('requests')
+        .update({ files: merged })
+        .eq('id', req.id);
+      if (error) {
+        setLoadError(error.message || 'Failed to save attachment.');
+        return;
+      }
+      setLoadError('');
       load();
     },
     [load]
@@ -190,6 +254,24 @@ export default function RequestsPage() {
                     by {req.submitted_by || 'Someone'}
                     {req.created_at ? ` · ${shortDate(dateOnly(req.created_at))}` : ''}
                   </span>
+                  {Array.isArray(req.files) && req.files.length ? (
+                    <div className="req-files">
+                      {req.files.map((f, i) =>
+                        f && f.url ? (
+                          <a
+                            key={`${f.url}-${i}`}
+                            className="req-file"
+                            href={f.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {f.name || 'File'}
+                          </a>
+                        ) : null
+                      )}
+                    </div>
+                  ) : null}
+                  <AttachFile req={req} onAttach={attachToExisting} />
                 </div>
                 <div className="req-right">
                   <span className={`chip req-prio prio-${req.priority || 'medium'}`}>
@@ -234,6 +316,45 @@ function dateOnly(ts) {
   return String(ts).slice(0, 10);
 }
 
+/* ---------------- Attach-file control (per existing request) ---------------- */
+
+// A small "Attach file" control that uploads and appends to a request's files.
+// Uses a hidden file input driven by a label so the tap target stays on-theme.
+function AttachFile({ req, onAttach }) {
+  const [busy, setBusy] = useState(false);
+  const inputRef = useRef(null);
+
+  async function onPick(e) {
+    const files = e.target.files;
+    if (!files || !files.length) return;
+    setBusy(true);
+    await onAttach(req, files);
+    setBusy(false);
+    // Reset so picking the same file again re-fires onChange.
+    if (inputRef.current) inputRef.current.value = '';
+  }
+
+  return (
+    <div className="req-attach">
+      <button
+        type="button"
+        className="req-attach-btn"
+        disabled={busy}
+        onClick={() => inputRef.current && inputRef.current.click()}
+      >
+        {busy ? 'Uploading…' : 'Attach file'}
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        multiple
+        className="req-attach-input"
+        onChange={onPick}
+      />
+    </div>
+  );
+}
+
 /* ---------------- Request form ---------------- */
 
 function RequestForm({ editing, onSaved, onCancelEdit, onError }) {
@@ -242,8 +363,10 @@ function RequestForm({ editing, onSaved, onCancelEdit, onError }) {
   const [submittedBy, setSubmittedBy] = useState(PEOPLE[0].value);
   const [priority, setPriority] = useState('medium');
   const [reqType, setReqType] = useState('');
+  const [files, setFiles] = useState([]);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef(null);
 
   const isEdit = !!editing;
 
@@ -277,31 +400,64 @@ function RequestForm({ editing, onSaved, onCancelEdit, onError }) {
       req_type: reqType.trim() ? reqType.trim() : null,
     };
 
-    let res;
     if (isEdit) {
-      res = await supabase.from('requests').update(payload).eq('id', editing.id);
-    } else {
-      res = await supabase
+      const res = await supabase
         .from('requests')
-        .insert({ ...payload, status: 'new' });
+        .update(payload)
+        .eq('id', editing.id);
+      setSaving(false);
+      if (res.error) {
+        setError(res.error.message || 'Failed to save request.');
+        return;
+      }
+      if (onError) onError('');
+      onSaved();
+      return;
+    }
+
+    // New request: insert and get the id back so we can upload attachments.
+    const { data: inserted, error: insertError } = await supabase
+      .from('requests')
+      .insert({ ...payload, status: 'new' })
+      .select()
+      .single();
+
+    if (insertError) {
+      setSaving(false);
+      setError(insertError.message || 'Failed to save request.');
+      return;
+    }
+
+    // Upload any attachments, then write the {name, url} list onto the row.
+    if (files.length) {
+      try {
+        const uploaded = await uploadRequestFiles(inserted.id, files);
+        const { error: filesError } = await supabase
+          .from('requests')
+          .update({ files: uploaded })
+          .eq('id', inserted.id);
+        if (filesError) {
+          setSaving(false);
+          setError(filesError.message || 'Failed to save attachments.');
+          return;
+        }
+      } catch (err) {
+        setSaving(false);
+        setError(err.message || 'Failed to upload attachments.');
+        return;
+      }
     }
 
     setSaving(false);
-    if (res.error) {
-      setError(res.error.message || 'Failed to save request.');
-      return;
-    }
     if (onError) onError('');
 
-    if (isEdit) {
-      onSaved();
-    } else {
-      // Clear the form but keep the submitted_by + priority selections sticky.
-      setTitle('');
-      setDetail('');
-      setReqType('');
-      onSaved();
-    }
+    // Clear the form but keep the submitted_by + priority selections sticky.
+    setTitle('');
+    setDetail('');
+    setReqType('');
+    setFiles([]);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    onSaved();
   }
 
   return (
@@ -365,6 +521,33 @@ function RequestForm({ editing, onSaved, onCancelEdit, onError }) {
         />
       </div>
 
+      {!isEdit ? (
+        <div className="field">
+          <label className="label">Attach files</label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            className="req-file-input"
+            onChange={(e) => setFiles(Array.from(e.target.files || []))}
+          />
+          {files.length ? (
+            <div className="req-file-names muted">
+              {files.map((f, i) => (
+                <span key={`${f.name}-${i}`} className="req-file-name">
+                  {f.name}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <span className="req-file-hint muted">
+              Optional - 3D models, references, anything to keep with this
+              request.
+            </span>
+          )}
+        </div>
+      ) : null}
+
       <div className="field">
         <label className="label">Submitted by</label>
         <div className="seg">
@@ -395,7 +578,13 @@ function RequestForm({ editing, onSaved, onCancelEdit, onError }) {
           </button>
         ) : null}
         <button type="submit" className="btn btn-primary" disabled={saving}>
-          {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Add request'}
+          {saving
+            ? files.length && !isEdit
+              ? 'Uploading…'
+              : 'Saving…'
+            : isEdit
+            ? 'Save changes'
+            : 'Add request'}
         </button>
       </div>
 
