@@ -152,3 +152,14 @@ alter publication supabase_realtime add table clients;
 alter publication supabase_realtime add table inventory;
 alter publication supabase_realtime add table print_queue;
 alter publication supabase_realtime add table recurring;
+
+-- ---------------------------------------------------------------------------
+-- Grants: allow the API roles (anon, authenticated) to use the public tables.
+-- Required so the app's publishable/anon key can read and write (RLS still
+-- governs row access on top of these table-level grants).
+-- ---------------------------------------------------------------------------
+grant usage on schema public to anon, authenticated;
+grant all on all tables in schema public to anon, authenticated;
+grant all on all sequences in schema public to anon, authenticated;
+alter default privileges in schema public grant all on tables to anon, authenticated;
+alter default privileges in schema public grant all on sequences to anon, authenticated;
