@@ -1,0 +1,100 @@
+/* Money page styles. Tokens from globals.css. */
+
+.money {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Error line (shared shape with dashboard). */
+.form-error {
+  background: var(--red-dim);
+  border: 1px solid var(--red);
+  color: var(--red);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+/* Add Sale / Add Expense toggle spans full width. */
+.form-toggle {
+  width: 100%;
+}
+
+.form-toggle > button {
+  flex: 1;
+}
+
+/* Add/edit form layout. */
+.add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.add-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Stack the grid2 pairs on phones for big touch targets. */
+@media (max-width: 640px) {
+  .add-form .grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* On phones, make the primary action full-width and easy to tap. */
+@media (max-width: 640px) {
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+  .form-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Entries list. */
+.entry-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+}
+
+/* On narrow screens let the amount + actions wrap under the description. */
+@media (max-width: 480px) {
+  .entry-list .entry-right {
+    gap: 8px;
+  }
+}
+
+/* Month totals footer. */
+.month-totals {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  flex-wrap: wrap;
+}
+
+/* Month switcher label sizing. */
+.month-nav-label {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  min-width: 9ch;
+  text-align: center;
+}

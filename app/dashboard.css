@@ -1,0 +1,121 @@
+/* Dashboard-specific styles. Design tokens come from globals.css. */
+
+.dash {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Error line shared shape with money page. */
+.form-error {
+  background: var(--red-dim);
+  border: 1px solid var(--red);
+  color: var(--red);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+/* Goal hero caption + brighter fill when over goal. */
+.goal-caption {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.goal-fill-win {
+  background: var(--green);
+  box-shadow: 0 0 12px var(--green);
+}
+
+/* Three stat cards: 3-up on desktop, stack on phones. */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .stat-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Settlement card. */
+.settle-line {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-top: 4px;
+}
+
+.settle-totals {
+  display: flex;
+  gap: 18px;
+  margin-top: 8px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+
+/* Feed list. */
+.feed-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+}
+
+/* EntryRow internals (shared with money page). */
+.entry-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.entry-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.entry-title {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.entry-tag {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+.entry-sub {
+  font-size: 13px;
+}
+
+.entry-date {
+  font-size: 12px;
+}
+
+.entry-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.entry-amount {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.entry-actions {
+  display: flex;
+  gap: 6px;
+}
