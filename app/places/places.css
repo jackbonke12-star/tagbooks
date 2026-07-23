@@ -131,6 +131,50 @@
   min-width: 33%;
 }
 
+/* ---------- Community filter ---------- */
+.community-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 0;
+}
+
+.community-filter .select {
+  width: 100%;
+  font-size: 16px;
+}
+
+/* ---------- Community group sub-headers ---------- */
+.place-group + .place-group {
+  margin-top: 4px;
+}
+
+.place-group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0 4px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 2px;
+}
+
+.place-group-name {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.place-group-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---------- Search box ---------- */
 .place-search {
   position: relative;

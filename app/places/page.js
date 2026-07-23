@@ -147,6 +147,7 @@ export default function PlacesPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [filter, setFilter] = useState('all'); // 'all' | status value
+  const [community, setCommunity] = useState('all'); // 'all' | community value
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState(null);
   const [prefillType, setPrefillType] = useState('');
@@ -322,12 +323,36 @@ export default function PlacesPage() {
     return c;
   }, [places]);
 
+  // Distinct communities present in the loaded prospects (skip excluded, so the
+  // dropdown matches the visible universe). Deduped, sorted alphabetically.
+  const communityOptions = useMemo(() => {
+    const set = new Set();
+    for (const p of places) {
+      if (p.status === 'skip') continue;
+      const c = (p.city || '').trim();
+      if (c) set.add(c);
+    }
+    return Array.from(set).sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: 'base' })
+    );
+  }, [places]);
+
+  // If the selected community disappears from the data (deleted/edited), fall
+  // back to "All communities" so the list never looks empty for a stale pick.
+  useEffect(() => {
+    if (community !== 'all' && !communityOptions.includes(community)) {
+      setCommunity('all');
+    }
+  }, [community, communityOptions]);
+
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase();
     const rows = places.filter((p) => {
       // Skipped places stay hidden from the visit tabs.
       if (p.status === 'skip') return false;
       if (filter !== 'all' && p.status !== filter) return false;
+      if (community !== 'all' && (p.city || '').trim() !== community)
+        return false;
       if (!q) return true;
       const hay = `${p.name || ''} ${p.business_type || ''} ${
         p.city || ''
@@ -344,7 +369,28 @@ export default function PlacesPage() {
       return (a.name || '').localeCompare(b.name || '');
     });
     return rows;
-  }, [places, filter, search]);
+  }, [places, filter, community, search]);
+
+  // Group the visible rows by community for sub-headers. Communities sort
+  // alphabetically; blank community collects into a "No community" group shown
+  // last. Within a group the existing priority/status/name order is preserved
+  // (visible is already sorted, so a stable bucket keeps that order).
+  const groups = useMemo(() => {
+    const NO_COMMUNITY = '￿'; // sorts last
+    const byCommunity = new Map();
+    for (const p of visible) {
+      const c = (p.city || '').trim() || NO_COMMUNITY;
+      if (!byCommunity.has(c)) byCommunity.set(c, []);
+      byCommunity.get(c).push(p);
+    }
+    return Array.from(byCommunity.entries())
+      .sort((a, b) => a[0].localeCompare(b[0], undefined, { sensitivity: 'base' }))
+      .map(([key, rows]) => ({
+        key,
+        label: key === NO_COMMUNITY ? 'No community' : key,
+        rows,
+      }));
+  }, [visible]);
 
   return (
     <div className="places" ref={formTopRef}>
@@ -412,6 +458,27 @@ export default function PlacesPage() {
         ))}
       </div>
 
+      {/* Community filter: work one NW zone at a time. ANDs with search +
+          status. Populated from the communities actually present. */}
+      <div className="field community-filter">
+        <label className="label" htmlFor="community-filter">
+          Community
+        </label>
+        <select
+          id="community-filter"
+          className="select"
+          value={community}
+          onChange={(e) => setCommunity(e.target.value)}
+        >
+          <option value="all">All communities</option>
+          {communityOptions.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* Places list */}
       <div className="card">
         <div className="card-label">Places</div>
@@ -441,7 +508,9 @@ export default function PlacesPage() {
         {!loading && !loadError ? (
           <div className="place-count muted">
             {visible.length === 1 ? '1 place' : `${visible.length} places`}
-            {search.trim() || filter !== 'all' ? ` of ${counts.all}` : ''}
+            {search.trim() || filter !== 'all' || community !== 'all'
+              ? ` of ${counts.all}`
+              : ''}
           </div>
         ) : null}
 
@@ -450,19 +519,25 @@ export default function PlacesPage() {
           <div className="muted load-line">Loading…</div>
         ) : visible.length === 0 ? (
           <div className="muted load-line">
-            {search.trim() || filter !== 'all'
+            {search.trim() || filter !== 'all' || community !== 'all'
               ? 'No matches.'
               : 'No places yet. Tap "Add a place" to add the first business to hit.'}
           </div>
         ) : (
           <div className="place-list">
-            {visible.map((place) => {
-              const sub = [place.business_type, place.city]
-                .filter(Boolean)
-                .join(' - ');
-              const tel = telHref(place.phone);
-              const isWon = place.status === 'won';
-              return (
+            {groups.map((group) => (
+              <div className="place-group" key={group.key}>
+                <div className="place-group-head">
+                  <span className="place-group-name">{group.label}</span>
+                  <span className="place-group-count">{group.rows.length}</span>
+                </div>
+                {group.rows.map((place) => {
+                  const sub = [place.business_type, place.city]
+                    .filter(Boolean)
+                    .join(' - ');
+                  const tel = telHref(place.phone);
+                  const isWon = place.status === 'won';
+                  return (
                 <div className="list-item place-row" key={place.id}>
                   <div className="place-main">
                     <span className="place-name">{place.name}</span>
@@ -568,8 +643,10 @@ export default function PlacesPage() {
                     ) : null}
                   </div>
                 </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            ))}
           </div>
         )}
       </div>

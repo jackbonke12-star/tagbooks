@@ -23,7 +23,43 @@
   border: 1px solid var(--rule-strong);
   border-radius: var(--radius);
   padding: 20px;
-  box-shadow: 0 1px 0 #d8cfbb;
+  box-shadow: 0 1px 0 var(--card-lift, #d8cfbb);
+}
+
+/* Recurring cost hero (mirrors the MRR hero shape; figure reads red). */
+.cost-hero {
+  background: var(--panel);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: 0 1px 0 var(--card-lift, #d8cfbb);
+}
+
+/* Add recurring-expense form: stacked fields, actions to the right. */
+.add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.add-form .field {
+  margin-bottom: 0;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+@media (max-width: 640px) {
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+  .form-actions .btn {
+    width: 100%;
+  }
 }
 
 .mrr-caption {

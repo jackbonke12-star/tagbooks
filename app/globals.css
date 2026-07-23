@@ -777,3 +777,28 @@ button {
 .login-toggle:active {
   color: var(--ink);
 }
+
+/* ---------- Corner stamp (small easter egg) ----------
+   A little paper-framed image tucked near the bottom of a couple pages. Sits in
+   the normal flow at the end of the page so it never shifts or blocks layout;
+   right-aligned, slightly rotated + faded like the other paper stamps. Works in
+   light and dark (framing uses tokens). */
+.corner-stamp {
+  display: flex;
+  justify-content: flex-end;
+  margin: 4px 6px 0;
+  pointer-events: none;
+}
+
+.corner-stamp-img {
+  display: block;
+  width: 80px;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 3px;
+  background: var(--panel);
+  box-shadow: 0 1px 0 var(--card-lift, #d8cfbb);
+  opacity: 0.72;
+  transform: rotate(-4deg);
+}

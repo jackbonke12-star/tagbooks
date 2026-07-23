@@ -316,6 +316,17 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* A small surprise tucked in the corner (Jackson's request). Decorative
+          only: does not shift layout or block anything, works light/dark. */}
+      <div className="corner-stamp" aria-hidden="true">
+        <img
+          className="corner-stamp-img"
+          src="https://noildgtslvubjkifcifm.supabase.co/storage/v1/object/public/request-files/6ed54361-ee24-4012-9fa6-c8c1c4c73171/1784848430515-0-IMG_5693.PNG"
+          alt=""
+          loading="lazy"
+        />
+      </div>
     </div>
   );
 }
