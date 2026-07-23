@@ -1,6 +1,7 @@
 'use client';
 
 import './dashboard.css';
+import Link from 'next/link';
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import {
@@ -269,6 +270,14 @@ export default function DashboardPage() {
       <div className="card">
         <div className="card-label">Monthly recurring</div>
         <div className="big-num green">{money(mrr)}</div>
+      </div>
+
+      {/* PITCH SCREEN LINK */}
+      <div className="products-callout">
+        <span className="muted">Showing a client?</span>
+        <Link className="btn btn-ghost products-callout-btn" href="/products">
+          View products
+        </Link>
       </div>
 
       {/* PRINT QUEUE - WAITING */}

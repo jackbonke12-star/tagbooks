@@ -1,0 +1,205 @@
+/* Products showcase. Tokens come from globals.css.
+   Treatment: product photos are exhibits/clippings paper-framed into the
+   ledger book - thin ink borders, slight pinned-in rotation, typewriter
+   captions, and rubber-stamp price chips. */
+
+.products {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---------- Exhibit (paper-framed photo clipping) ---------- */
+
+.exhibit {
+  margin: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* The paper frame: tinted paper mat with a thin ink border, slight lift. */
+.exhibit-frame {
+  padding: 8px 8px 10px;
+  background: #fffdf7;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  box-shadow: 0 2px 5px rgba(28, 26, 21, 0.18), 0 1px 0 #d8cfbb;
+}
+
+.exhibit-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 1px;
+}
+
+/* Typewriter caption underneath. */
+.exhibit-caption {
+  margin-top: 10px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--rule-strong);
+  text-align: center;
+}
+
+/* Alternating pinned-in tilts (~ -1 to +2deg). */
+.exhibit-tilt-0 {
+  transform: rotate(-1deg);
+}
+.exhibit-tilt-1 {
+  transform: rotate(2deg);
+}
+.exhibit-tilt-2 {
+  transform: rotate(-1.5deg);
+}
+
+/* ---------- Rubber-stamp price chip ---------- */
+
+.price-stamp {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border: 2px solid var(--green);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--green);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  transform: rotate(-4deg);
+}
+
+/* ---------- Hero exhibit ---------- */
+
+.prod-hero {
+  overflow: hidden;
+}
+
+.hero-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 300px) 1fr;
+  gap: 24px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+@media (max-width: 640px) {
+  .hero-inner {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}
+
+.exhibit-hero {
+  transform: rotate(-1.5deg);
+}
+
+.exhibit-hero .exhibit-img {
+  aspect-ratio: 1 / 1;
+}
+
+/* Price stamp pinned to the corner of the hero exhibit. */
+.price-hero {
+  position: absolute;
+  right: -6px;
+  bottom: 8px;
+  background: #fffdf7;
+  font-size: 18px;
+  padding: 6px 14px;
+}
+
+.hero-copy {
+  min-width: 0;
+}
+
+.hero-headline {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.hero-pitch {
+  margin: 10px 0 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--green);
+}
+
+.hero-note {
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ---------- Gallery grid ---------- */
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px 18px;
+  margin-top: 10px;
+  padding: 4px 2px;
+}
+
+@media (max-width: 640px) {
+  .gallery {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+}
+
+/* ---------- Ledger price list ---------- */
+
+.pricelist {
+  margin-top: 4px;
+}
+
+.price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.price-name {
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* Leader dots fill the gap between name and price. */
+.price-dots {
+  flex: 1;
+  align-self: center;
+  min-width: 12px;
+  height: 0;
+  border-bottom: 1px dotted var(--line);
+}
+
+.price-amount {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+/* Double-rule closing the section, accounting-ledger style. */
+.pricelist-rule {
+  margin-top: 4px;
+  height: 3px;
+  border-top: 1px solid var(--rule-strong);
+  border-bottom: 1px solid var(--rule-strong);
+}

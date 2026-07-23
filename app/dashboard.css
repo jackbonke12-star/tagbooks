@@ -27,6 +27,23 @@
   box-shadow: inset 0 0 0 2px rgba(255, 253, 247, 0.35);
 }
 
+/* Slim callout to the products pitch screen. */
+.products-callout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: -4px;
+  font-size: 13px;
+}
+
+.products-callout-btn {
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
 /* Three stat cards: 3-up on desktop, stack on phones. */
 .stat-row {
   display: grid;

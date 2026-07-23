@@ -7,6 +7,8 @@ export default function TopNav() {
   const pathname = usePathname();
 
   const isDash = pathname === '/';
+  const isProducts =
+    pathname === '/products' || pathname.startsWith('/products/');
   const isClients = pathname === '/clients' || pathname.startsWith('/clients/');
   const isMoney = pathname === '/money' || pathname.startsWith('/money/');
   const isInventory =
@@ -20,6 +22,12 @@ export default function TopNav() {
       <div className="topnav-links">
         <Link className={'topnav-link' + (isDash ? ' on' : '')} href="/">
           Dashboard
+        </Link>
+        <Link
+          className={'topnav-link' + (isProducts ? ' on' : '')}
+          href="/products"
+        >
+          Products
         </Link>
         <Link
           className={'topnav-link' + (isClients ? ' on' : '')}
