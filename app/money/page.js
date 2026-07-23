@@ -7,9 +7,13 @@ import {
   PRODUCTS,
   CATEGORIES,
   productByValue,
+  productLabel,
+  categoryLabel,
   money,
   localToday,
   monthRange,
+  isKit,
+  needsLogoStand,
 } from '../../lib/catalog';
 import MonthSwitcher from '../../components/MonthSwitcher';
 import EntryRow from '../../components/EntryRow';
@@ -135,6 +139,82 @@ export default function MoneyPage() {
     setMode(next);
   }
 
+  // CSV export. `scope` is 'month' or 'year'. Queries the period straight from
+  // supabase (not loaded state) so the year export covers all 12 months.
+  const [exporting, setExporting] = useState(false);
+  const doExport = useCallback(
+    async (scope) => {
+      setExporting(true);
+      setLoadError('');
+      let first;
+      let last;
+      let salesName;
+      let expensesName;
+      if (scope === 'year') {
+        first = monthRange(year, 0).first;
+        last = monthRange(year, 11).last;
+        salesName = `tagbooks-sales-${year}.csv`;
+        expensesName = `tagbooks-expenses-${year}.csv`;
+      } else {
+        const r = monthRange(year, monthIndex);
+        first = r.first;
+        last = r.last;
+        const mm = String(monthIndex + 1).padStart(2, '0');
+        salesName = `tagbooks-sales-${year}-${mm}.csv`;
+        expensesName = `tagbooks-expenses-${year}-${mm}.csv`;
+      }
+
+      const [salesRes, expensesRes] = await Promise.all([
+        supabase
+          .from('sales')
+          .select('*')
+          .gte('date', first)
+          .lte('date', last)
+          .order('date', { ascending: true }),
+        supabase
+          .from('expenses')
+          .select('*')
+          .gte('date', first)
+          .lte('date', last)
+          .order('date', { ascending: true }),
+      ]);
+
+      setExporting(false);
+      const err = salesRes.error || expensesRes.error;
+      if (err) {
+        setLoadError(err.message || 'Failed to export.');
+        return;
+      }
+
+      const salesCsv = toCsv(
+        ['date', 'client_name', 'product', 'amount', 'type', 'closed_by', 'notes'],
+        (salesRes.data || []).map((s) => [
+          s.date,
+          s.client_name,
+          productLabel(s.product),
+          s.amount,
+          s.type,
+          s.closed_by,
+          s.notes,
+        ])
+      );
+      const expensesCsv = toCsv(
+        ['date', 'category', 'amount', 'paid_by', 'notes'],
+        (expensesRes.data || []).map((e) => [
+          e.date,
+          categoryLabel(e.category),
+          e.amount,
+          e.paid_by,
+          e.notes,
+        ])
+      );
+
+      downloadCsv(salesName, salesCsv);
+      downloadCsv(expensesName, expensesCsv);
+    },
+    [year, monthIndex]
+  );
+
   return (
     <div className="money" ref={formTopRef}>
       <MonthSwitcher
@@ -206,9 +286,134 @@ export default function MoneyPage() {
           <span className="green">Sales {money(salesTotal)}</span>
           <span className="red">Expenses {money(expensesTotal)}</span>
         </div>
+
+        <div className="row export-row">
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => doExport('month')}
+            disabled={exporting}
+          >
+            {exporting ? 'Exporting…' : 'Export month CSV'}
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => doExport('year')}
+            disabled={exporting}
+          >
+            {exporting ? 'Exporting…' : 'Export year CSV'}
+          </button>
+        </div>
       </div>
     </div>
   );
+}
+
+/* ---------------- CSV helpers ---------------- */
+
+// Escape one CSV field: wrap in quotes and double internal quotes when the
+// value contains a comma, quote, or newline. Null/undefined become empty.
+function csvField(value) {
+  if (value === null || value === undefined) return '';
+  const s = String(value);
+  if (/[",\n\r]/.test(s)) {
+    return `"${s.replace(/"/g, '""')}"`;
+  }
+  return s;
+}
+
+// Build a CSV string from a header row and an array of value rows.
+function toCsv(headers, rows) {
+  const lines = [headers.map(csvField).join(',')];
+  for (const row of rows) {
+    lines.push(row.map(csvField).join(','));
+  }
+  return lines.join('\r\n');
+}
+
+// Trigger a client-side download of a CSV string via a temporary <a>.
+function downloadCsv(filename, csv) {
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ---------------- Sale auto-effects ---------------- */
+
+// Fire the side effects a brand-new sale triggers: inventory decrements,
+// logo-stand print jobs, and recurring plan creation. Every branch is wrapped
+// so a failure here can never block the sale that already committed.
+async function runSaleAutoEffects({
+  product,
+  clientName,
+  clientId,
+  amount,
+  type,
+  date,
+}) {
+  // Kit sold -> consume 3 cards and 1 stand from inventory (never below 0).
+  if (isKit(product)) {
+    try {
+      await decrementInventory('cards', 3);
+    } catch {
+      /* non-fatal */
+    }
+    try {
+      await decrementInventory('stands', 1);
+    } catch {
+      /* non-fatal */
+    }
+  }
+
+  // Product needs a printed logo stand -> queue a print job.
+  if (needsLogoStand(product)) {
+    try {
+      await supabase.from('print_queue').insert({
+        client: clientName || null,
+        item: 'logo_stand',
+        status: 'waiting',
+        due_date: null,
+      });
+    } catch {
+      /* non-fatal */
+    }
+  }
+
+  // Recurring sale -> create the recurring plan row.
+  if (type === 'recurring') {
+    try {
+      await supabase.from('recurring').insert({
+        client_id: clientId || null,
+        client_name: clientName || null,
+        product,
+        amount,
+        start_date: date,
+        active: true,
+      });
+    } catch {
+      /* non-fatal */
+    }
+  }
+}
+
+// Fetch the current quantity for an inventory item and subtract `by`,
+// clamped at 0. Skips silently if the row is missing.
+async function decrementInventory(item, by) {
+  const { data, error } = await supabase
+    .from('inventory')
+    .select('id, quantity')
+    .eq('item', item)
+    .maybeSingle();
+  if (error || !data) return;
+  const next = Math.max(0, Number(data.quantity || 0) - by);
+  await supabase.from('inventory').update({ quantity: next }).eq('id', data.id);
 }
 
 /* ---------------- Sale form ---------------- */
@@ -333,6 +538,19 @@ function SaleForm({ editing, onSaved, onCancelEdit }) {
           .update({ stage: 'sold' })
           .eq('id', clientId);
       }
+    }
+
+    // Auto-effects on new sales only (never on edits). Best-effort: any error
+    // here is swallowed so it can't block or fail the sale that already saved.
+    if (!isEdit) {
+      await runSaleAutoEffects({
+        product,
+        clientName: clientName.trim(),
+        clientId: clientId || null,
+        amount: amt,
+        type,
+        date,
+      });
     }
 
     if (isEdit) {

@@ -56,6 +56,18 @@
   flex-wrap: wrap;
 }
 
+/* Print queue - waiting mini list. */
+.print-waiting-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+}
+
+.print-waiting-item {
+  font-weight: 600;
+  color: var(--ink);
+}
+
 /* Feed list. */
 .feed-list {
   display: flex;

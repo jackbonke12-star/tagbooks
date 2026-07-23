@@ -1,0 +1,91 @@
+/* Recurring plans page styles. Tokens from globals.css. */
+
+.recurring {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Error line (shared shape with money / dashboard). */
+.form-error {
+  background: var(--red-dim);
+  border: 1px solid var(--red);
+  color: var(--red);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+/* MRR hero. */
+.mrr-hero {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.mrr-caption {
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+/* Plan rows. */
+.rec-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+}
+
+.rec-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.rec-row:last-child {
+  border-bottom: none;
+}
+
+.rec-row.rec-inactive {
+  opacity: 0.5;
+}
+
+.rec-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rec-name {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.rec-sub {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.rec-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.rec-amount {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.rec-cancel {
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 14px;
+}

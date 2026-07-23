@@ -119,6 +119,14 @@ button {
   display: flex;
   gap: 4px;
   margin-left: auto;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.topnav-links::-webkit-scrollbar {
+  display: none;
 }
 
 .topnav-link {
@@ -130,6 +138,35 @@ button {
   color: var(--muted);
   font-weight: 600;
   font-size: 15px;
+  white-space: nowrap;
+}
+
+/* On phones, keep brand + Sign out on row one and let the links wrap to a
+   full-width scrollable row two so the active tab is never clipped. */
+@media (max-width: 560px) {
+  .topnav {
+    flex-wrap: wrap;
+    gap: 8px 8px;
+    padding: 10px 12px;
+  }
+  .topnav-brand {
+    margin-right: auto;
+    order: 0;
+  }
+  .topnav-signout {
+    order: 1;
+    flex-shrink: 0;
+  }
+  .topnav-links {
+    order: 2;
+    flex-basis: 100%;
+    margin-left: 0;
+    gap: 6px;
+  }
+  .topnav-link {
+    padding: 0 12px;
+    font-size: 14px;
+  }
 }
 
 .topnav-link.on {

@@ -90,6 +90,19 @@
   flex-wrap: wrap;
 }
 
+/* CSV export controls. */
+.export-row {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.export-row .btn {
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
 /* Month switcher label sizing. */
 .month-nav-label {
   font-size: 18px;

@@ -1,0 +1,190 @@
+/* Inventory + print queue page styles. Tokens from globals.css. */
+
+.inventory {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Error line (shared shape with money / dashboard). */
+.form-error {
+  background: var(--red-dim);
+  border: 1px solid var(--red);
+  color: var(--red);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+/* Low-stock warning banner. */
+.stock-warning {
+  background: rgba(255, 93, 93, 0.1);
+  border: 1px solid var(--red-dim);
+  color: var(--red);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Inventory rows. */
+.inv-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+}
+
+.inv-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.inv-row:last-child {
+  border-bottom: none;
+}
+
+.inv-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.inv-name {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.inv-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.inv-controls .big-num {
+  min-width: 2ch;
+  text-align: center;
+}
+
+.inv-step {
+  width: 48px;
+  min-height: 48px;
+  padding: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* Print queue. */
+.pq-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+}
+
+.pq-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.pq-row:last-child {
+  border-bottom: none;
+}
+
+.pq-row.pq-done {
+  opacity: 0.5;
+}
+
+.pq-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pq-title {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.pq-sub {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.pq-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Status chip (tap to advance). */
+.pq-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.pq-status-waiting {
+  color: var(--muted);
+  background: var(--panel2);
+  border-color: var(--line);
+}
+
+.pq-status-printing {
+  color: var(--ink);
+  background: rgba(143, 163, 155, 0.14);
+  border-color: var(--muted);
+}
+
+.pq-status-done {
+  color: var(--green);
+  background: rgba(52, 217, 123, 0.12);
+  border-color: var(--green-dim);
+}
+
+.pq-del {
+  min-height: 40px;
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+/* Add print job form. */
+.pq-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.pq-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+@media (max-width: 640px) {
+  .pq-form .grid2 {
+    grid-template-columns: 1fr;
+  }
+}

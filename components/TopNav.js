@@ -16,6 +16,10 @@ export default function TopNav() {
   const isDash = pathname === '/';
   const isClients = pathname === '/clients' || pathname.startsWith('/clients/');
   const isMoney = pathname === '/money' || pathname.startsWith('/money/');
+  const isInventory =
+    pathname === '/inventory' || pathname.startsWith('/inventory/');
+  const isRecurring =
+    pathname === '/recurring' || pathname.startsWith('/recurring/');
 
   return (
     <nav className="topnav">
@@ -32,6 +36,18 @@ export default function TopNav() {
         </Link>
         <Link className={'topnav-link' + (isMoney ? ' on' : '')} href="/money">
           Money
+        </Link>
+        <Link
+          className={'topnav-link' + (isInventory ? ' on' : '')}
+          href="/inventory"
+        >
+          Inventory
+        </Link>
+        <Link
+          className={'topnav-link' + (isRecurring ? ' on' : '')}
+          href="/recurring"
+        >
+          Recurring
         </Link>
       </div>
       <button className="topnav-signout" onClick={signOut} type="button">

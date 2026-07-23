@@ -10,6 +10,7 @@ import {
   localToday,
   shortDate,
   stageLabel,
+  itemLabel,
 } from '../lib/catalog';
 import EntryRow from '../components/EntryRow';
 
@@ -29,6 +30,8 @@ export default function DashboardPage() {
   const [expenses, setExpenses] = useState([]);
   const [feed, setFeed] = useState([]);
   const [followups, setFollowups] = useState([]);
+  const [recurringActive, setRecurringActive] = useState([]);
+  const [printWaiting, setPrintWaiting] = useState([]);
 
   // Current LOCAL month, resolved once on mount.
   const now = useMemo(() => new Date(), []);
@@ -52,6 +55,8 @@ export default function DashboardPage() {
         feedSalesRes,
         feedExpensesRes,
         followupsRes,
+        recurringRes,
+        printWaitingRes,
       ] = await Promise.all([
           supabase
             .from('sales')
@@ -83,6 +88,14 @@ export default function DashboardPage() {
             .not('next_followup', 'is', null)
             .lte('next_followup', today)
             .order('next_followup', { ascending: true }),
+          // Active recurring plans for the MRR card.
+          supabase.from('recurring').select('*').eq('active', true),
+          // Waiting print jobs for the mini list.
+          supabase
+            .from('print_queue')
+            .select('*')
+            .eq('status', 'waiting')
+            .order('created_at', { ascending: true }),
         ]);
 
       if (!active) return;
@@ -92,7 +105,9 @@ export default function DashboardPage() {
         expensesRes.error ||
         feedSalesRes.error ||
         feedExpensesRes.error ||
-        followupsRes.error;
+        followupsRes.error ||
+        recurringRes.error ||
+        printWaitingRes.error;
       if (firstErr) {
         setError(firstErr.message || 'Failed to load data.');
         setLoading(false);
@@ -102,6 +117,8 @@ export default function DashboardPage() {
       setSales(salesRes.data || []);
       setExpenses(expensesRes.data || []);
       setFollowups(followupsRes.data || []);
+      setRecurringActive(recurringRes.data || []);
+      setPrintWaiting(printWaitingRes.data || []);
 
       const merged = [
         ...(feedSalesRes.data || []).map((s) => ({ ...s, kind: 'sale' })),
@@ -128,6 +145,11 @@ export default function DashboardPage() {
     [expenses]
   );
   const profit = revenue - expenseTotal;
+
+  const mrr = useMemo(
+    () => sum(recurringActive.map((r) => r.amount)),
+    [recurringActive]
+  );
 
   const pct = GOAL > 0 ? (revenue / GOAL) * 100 : 0;
   const barWidth = Math.min(100, pct);
@@ -242,6 +264,27 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* MRR */}
+      <div className="card">
+        <div className="card-label">Monthly recurring</div>
+        <div className="big-num green">{money(mrr)}</div>
+      </div>
+
+      {/* PRINT QUEUE - WAITING */}
+      {printWaiting.length > 0 ? (
+        <div className="card">
+          <div className="card-label">Print queue — waiting</div>
+          <div className="print-waiting-list">
+            {printWaiting.map((job) => (
+              <div className="list-item print-waiting-row" key={job.id}>
+                <span className="print-waiting-item">{itemLabel(job.item)}</span>
+                <span className="muted">{job.client || 'No client'}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {/* SETTLEMENT */}
       <div className="card">
