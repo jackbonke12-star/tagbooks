@@ -44,7 +44,10 @@
   gap: 12px;
   padding-bottom: 8px;
   margin-bottom: 12px;
-  border-bottom: 1px solid var(--line);
+  /* Deliberate ledger double-rule under the hero header line: one hairline plus
+     a heavier ink rule below it, crisp and bookish. Token-based for both themes. */
+  border-bottom: 1px solid var(--rule-strong);
+  box-shadow: 0 3px 0 -2px var(--line);
 }
 
 .goal-hero-label {
@@ -262,7 +265,8 @@
   font-weight: 600;
 }
 
-/* Stage chips as rubber stamps (shared shape with clients page). */
+/* Stage chips as rubber stamps (shared shape with clients page). The faint
+   inset + drop reads as ink pressed into paper rather than a flat outline. */
 .chip {
   display: inline-flex;
   align-items: center;
@@ -276,6 +280,8 @@
   background: transparent;
   color: var(--muted);
   transform: rotate(-3deg);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .chip-lead {
@@ -354,4 +360,58 @@
 .entry-actions {
   display: flex;
   gap: 6px;
+}
+
+/* ---------- Motion (subtle, entrance-only) ----------
+   All dashboard motion is gated behind prefers-reduced-motion: no-preference,
+   so anyone who opts out gets an instant, static dashboard. Entrance uses a
+   short fade + a few pixels of lift that settles to its natural position, so
+   nothing shifts layout after it lands (transform doesn't affect flow). */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes dash-rise {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Stagger the top-level dashboard blocks in by a hair each. Small, capped set
+     so nothing arrives late. */
+  .dash > .card,
+  .dash > .goal-hero,
+  .dash > .stat-grid,
+  .dash > .products-callout {
+    animation: dash-rise 0.34s ease both;
+  }
+  .dash > *:nth-child(2) {
+    animation-delay: 0.04s;
+  }
+  .dash > *:nth-child(3) {
+    animation-delay: 0.08s;
+  }
+  .dash > *:nth-child(4) {
+    animation-delay: 0.12s;
+  }
+  .dash > *:nth-child(n + 5) {
+    animation-delay: 0.14s;
+  }
+
+  /* The meter fill glides in from 0 to its real width on load. */
+  .goal-fill {
+    transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+/* Reduced-motion: the meter must snap to its width with no width animation,
+   and no entrance animations run (the no-preference block above simply doesn't
+   apply). Force the fill transition off so the 0 -> real width set on mount is
+   instant. */
+@media (prefers-reduced-motion: reduce) {
+  .goal-fill {
+    transition: none;
+  }
 }

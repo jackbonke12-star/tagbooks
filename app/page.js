@@ -2,7 +2,7 @@
 
 import './dashboard.css';
 import Link from 'next/link';
-import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useRealtime } from '../lib/realtime';
 import {
@@ -24,6 +24,56 @@ function telHref(phone) {
 }
 
 const GOAL = 10000;
+
+// Quick count-up for the hero figure. SSR/hydration-safe: state initializes to
+// the real target so the server render and the first client render match
+// exactly (no mismatch, no flash). The animation only ever runs AFTER mount,
+// and only when the user hasn't asked to reduce motion. It is entrance-only —
+// once it settles on `target` it stays there, and a later realtime change to
+// `target` snaps in place (no re-animation, no layout shift).
+function useCountUp(target, active, duration = 600) {
+  const [value, setValue] = useState(target);
+  // Track whether we've already played the one entrance animation.
+  const played = useRef(false);
+  const rafRef = useRef(0);
+
+  useEffect(() => {
+    // Wait until data has loaded before considering the entrance.
+    if (!active) return;
+
+    // After the entrance has played once, later target changes (realtime) just
+    // snap the figure into place — no replay, no layout shift.
+    if (played.current) {
+      setValue(target);
+      return;
+    }
+    played.current = true;
+
+    // Respect reduced-motion and non-animatable/degenerate targets.
+    const reduce =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || !Number.isFinite(target) || target <= 0) {
+      setValue(target);
+      return;
+    }
+
+    const start = performance.now();
+    const from = 0;
+    const ease = (t) => 1 - Math.pow(1 - t, 3); // easeOutCubic
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / duration);
+      setValue(from + (target - from) * ease(t));
+      if (t < 1) rafRef.current = requestAnimationFrame(tick);
+      else setValue(target);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [target, active, duration]);
+
+  return value;
+}
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -156,6 +206,22 @@ export default function DashboardPage() {
   const barWidth = Math.min(100, pct);
   const overGoal = revenue >= GOAL;
 
+  // Hero figure counts up once on load (mount-gated, reduced-motion aware).
+  const heroRevenue = useCountUp(revenue, !loading);
+
+  // Meter fills from 0 to its real width once, on load. Rendering 0 first then
+  // the real width after mount lets the CSS `transition: width` animate the
+  // fill in. It lives inside a fixed-height track, so nothing shifts. After the
+  // first paint `meterReady` stays true, so realtime width changes just glide
+  // via the same transition without re-running an entrance.
+  const [meterReady, setMeterReady] = useState(false);
+  useEffect(() => {
+    if (loading || meterReady) return;
+    // Next frame so the browser paints the 0-width fill first, then animates.
+    const id = requestAnimationFrame(() => setMeterReady(true));
+    return () => cancelAnimationFrame(id);
+  }, [loading, meterReady]);
+
   // Partner settlement on this month's expenses.
   const settlement = useMemo(() => {
     const jack = sum(
@@ -238,11 +304,11 @@ export default function DashboardPage() {
           <div className="goal-hero-label">{label}</div>
           <div className="goal-hero-target muted">Target {money(GOAL)}</div>
         </div>
-        <div className="goal-hero-num green">{money(revenue)}</div>
+        <div className="goal-hero-num green">{money(heroRevenue)}</div>
         <div className="goal-track">
           <div
             className={`goal-fill${overGoal ? ' goal-fill-win' : ''}`}
-            style={{ width: `${barWidth}%` }}
+            style={{ width: `${meterReady ? barWidth : 0}%` }}
           />
         </div>
         <div className="goal-caption muted">

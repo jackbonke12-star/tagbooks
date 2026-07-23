@@ -319,7 +319,8 @@
   }
 }
 
-/* ---------- Stage chips (rubber stamps) ---------- */
+/* ---------- Stage chips (rubber stamps) ----------
+   Faint inset + drop reads as pressed ink rather than a flat outline. */
 .chip {
   display: inline-flex;
   align-items: center;
@@ -334,6 +335,8 @@
   background: transparent;
   color: var(--muted);
   transform: rotate(-3deg);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .chip-lead {

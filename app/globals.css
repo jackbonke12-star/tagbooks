@@ -71,6 +71,54 @@ body {
   overflow-x: hidden;
 }
 
+/* ---------- Paper grain (barely-there texture) ----------
+   A faint, fixed paper tooth painted behind everything via a pair of tiny
+   layered gradients. CSS-only (no image files, no requests). Opacity is kept
+   extremely low so it reads as paper fiber, never as noise, and never touches
+   text contrast. Fixed attachment keeps it from scrolling like a pattern. The
+   layer is decorative and non-interactive. --grain-ink drives its darkness so
+   both themes stay correct (a hair stronger on dark paper). */
+:root {
+  --grain-ink: rgba(28, 26, 21, 0.05);
+  --grain-lift: rgba(255, 255, 255, 0.03);
+}
+html[data-theme="dark"] {
+  --grain-ink: rgba(0, 0, 0, 0.22);
+  --grain-lift: rgba(255, 253, 247, 0.018);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* Two offset dot fields at slightly different scales read as irregular fiber
+     rather than a visible grid; a faint diagonal hatch adds tooth. */
+  background-image: radial-gradient(var(--grain-ink) 0.5px, transparent 0.5px),
+    radial-gradient(var(--grain-lift) 0.5px, transparent 0.5px),
+    repeating-linear-gradient(
+      45deg,
+      var(--grain-ink) 0,
+      var(--grain-ink) 0.5px,
+      transparent 0.5px,
+      transparent 3px
+    );
+  background-size: 3px 3px, 4px 4px, auto;
+  background-position: 0 0, 1px 2px, 0 0;
+  opacity: 0.6;
+}
+
+/* Keep real content above the grain layer. .topnav already carries its own
+   stacking (z-index:100). The full-screen gate/splash screens sit above the
+   grain too so their opaque paper reads cleanly. */
+.page,
+.splash,
+.login {
+  position: relative;
+  z-index: 1;
+}
+
 /* iOS: keep tap highlights subtle and text un-inflated on rotate. */
 * {
   -webkit-text-size-adjust: 100%;
@@ -163,23 +211,46 @@ button {
 
 .topnav-brand {
   font-weight: 700;
-  letter-spacing: 2px;
+  /* A hair more open tracking reads as a proper ledger masthead. */
+  letter-spacing: 3px;
   text-transform: uppercase;
   font-size: 17px;
   padding-bottom: 8px;
   white-space: nowrap;
+  /* Hairline rule under the wordmark, deliberately shorter than the tab rule
+     so the masthead feels drawn, not boxed. */
+  position: relative;
 }
 
+.topnav-brand::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 0;
+  bottom: 5px;
+  height: 1px;
+  background: var(--rule-strong);
+  opacity: 0.7;
+}
+
+/* Brand dot as a small pressed wax-seal accent: a soft outer ring, an inked
+   rim, and a faint inner highlight so it reads raised rather than flat. */
 .topnav-brand::before {
   content: "";
   display: inline-block;
-  width: 9px;
-  height: 9px;
-  margin-right: 9px;
+  width: 10px;
+  height: 10px;
+  margin-right: 10px;
   border-radius: 50%;
-  background: var(--green);
+  background: radial-gradient(
+    circle at 35% 32%,
+    var(--green-dim),
+    var(--green) 62%
+  );
   border: 1px solid var(--ink);
   vertical-align: middle;
+  box-shadow: 0 0 0 2px var(--bg), inset 0 1px 1px rgba(255, 255, 255, 0.25),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.2);
 }
 
 /* Short nav (3 tabs + More): single clean row, no scroll hack needed. */
@@ -314,6 +385,10 @@ button {
     margin-right: 0;
     width: 11px;
     height: 11px;
+  }
+  /* No wordmark to underline at this width, so drop the masthead hairline. */
+  .topnav-brand::after {
+    display: none;
   }
   .topnav-links {
     gap: 3px;
@@ -469,11 +544,17 @@ button {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: transform 0.05s ease, opacity 0.15s ease;
+  /* Rest state carries a hairline paper drop so the press has somewhere to go. */
+  box-shadow: 0 1px 0 var(--card-lift, #d8cfbb);
+  transition: transform 0.06s ease, box-shadow 0.06s ease, opacity 0.15s ease;
 }
 
+/* Tactile press: the button sinks a hair and its drop shadow collapses, like a
+   key being pressed. Gated to no-preference below so reduced-motion users get a
+   plain, instant state. */
 .btn:active {
-  transform: scale(0.98);
+  transform: translateY(1px) scale(0.985);
+  box-shadow: 0 0 0 var(--card-lift, #d8cfbb);
 }
 
 .btn:disabled {
@@ -836,4 +917,40 @@ button {
   box-shadow: 0 1px 0 var(--card-lift, #d8cfbb);
   opacity: 0.72;
   transform: rotate(-4deg);
+}
+
+/* ---------- Global tactile press (buttons, tabs, chips) ----------
+   A small, unified press feel across the ledger's interactive paper: pressing
+   sinks the element a hair and collapses its drop, like ink hitting the page.
+   Gated to no-preference so reduced-motion users get static, instant states.
+   Entrance-only card motion lives in each page's own stylesheet. */
+@media (prefers-reduced-motion: no-preference) {
+  .topnav-link,
+  .seg button,
+  .btn-primary,
+  .btn-danger,
+  .btn-ghost {
+    transition: transform 0.06s ease, box-shadow 0.06s ease,
+      background 0.15s ease, color 0.15s ease;
+  }
+
+  .topnav-link:active,
+  .seg button:active {
+    transform: translateY(1px);
+  }
+}
+
+/* ---------- Reduced motion: hard stop ----------
+   Belt-and-suspenders: kill any lingering transitions/animations for users who
+   opt out, so nothing in the app animates. Instant :active states still apply
+   (they're state changes, not motion). The paper grain is static already. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
