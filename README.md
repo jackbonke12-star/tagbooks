@@ -14,6 +14,7 @@ Next.js (App Router) + Supabase. Phones-first. Runs on port 3003.
    If your database predates the Google review link on clients, run `migration-review-link.sql` to add the `google_review_url` column (already included in `supabase.sql`/`migration-clients.sql` for fresh setups).
    To add the in-app App Requests board (partners submit change/feature requests, Jack relays them), run `migration-requests.sql` (already included in `supabase.sql` for fresh setups).
    To add the Places door-to-door prospecting list (NW Calgary businesses to pitch), run `migration-prospects.sql` (already included in `supabase.sql` for fresh setups).
+   If your prospects table predates the phone / Google review link fields, run `migration-prospect-fields.sql` to add the `phone` and `google_review_url` columns (already included in `supabase.sql` for fresh setups).
 
 3. **Add your keys.** Copy `.env.local.example` to `.env.local` and fill in the two values
    from Supabase (Project Settings -> API):

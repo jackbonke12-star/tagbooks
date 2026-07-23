@@ -52,6 +52,14 @@
   }
 }
 
+/* ---------- Add toggle (collapsed form stand-in) ---------- */
+.add-toggle {
+  width: 100%;
+  min-height: 44px;
+  justify-content: center;
+  letter-spacing: 0.04em;
+}
+
 /* ---------- Intro header ---------- */
 .places-intro {
   /* Reserve the header footprint so nothing shifts on first paint. */
@@ -71,11 +79,7 @@
   font-size: 14px;
 }
 
-/* ---------- Target ideas quick-fill ---------- */
-.target-ideas {
-  padding-top: 14px;
-}
-
+/* ---------- Target ideas quick-fill (inside the add form) ---------- */
 .idea-chips {
   display: flex;
   flex-wrap: wrap;
@@ -196,11 +200,37 @@
   color: var(--muted);
 }
 
+/* Tappable phone number: 44px target, green like the clients page. */
+.place-tel {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 44px;
+  color: var(--green);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.place-tel:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .place-stamps {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+/* Row of action links (directions / find on google / review). Wraps on
+   narrow screens; reserve a comfortable footprint so rows don't shift. */
+.place-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
 }
 
 /* Directions: 44px tap target, green stamp-link. */
@@ -210,7 +240,6 @@
   align-self: flex-start;
   min-height: 44px;
   padding: 0 14px;
-  margin-top: 2px;
   border: 2px solid var(--green);
   border-radius: 3px;
   color: var(--green);
@@ -224,6 +253,53 @@
 }
 
 .place-directions:hover {
+  background: rgba(43, 122, 76, 0.08);
+}
+
+/* Find on Google: muted outline stamp-link, always available. */
+.place-google {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 2px solid var(--line);
+  border-radius: 3px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  white-space: nowrap;
+  transform: rotate(1deg);
+}
+
+.place-google:hover {
+  color: var(--ink);
+  border-color: var(--rule-strong);
+}
+
+/* Saved review link chip: green, matches the clients page review chip. */
+.place-review {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 2px solid var(--green);
+  border-radius: 3px;
+  color: var(--green);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  white-space: nowrap;
+  transform: rotate(-1deg);
+}
+
+.place-review:hover {
   background: rgba(43, 122, 76, 0.08);
 }
 
@@ -244,6 +320,55 @@
   min-height: 44px;
   padding: 0 14px;
   font-size: 14px;
+}
+
+/* Convert-to-client control + inline success flash. Reserve a min height so
+   swapping the button for the "Client added" label doesn't shift the row. */
+.place-convert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-height: 44px;
+}
+
+.btn-convert {
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 14px;
+  border: 2px solid var(--green);
+  border-radius: 3px;
+  color: var(--green);
+  background: transparent;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-convert:hover {
+  background: rgba(43, 122, 76, 0.08);
+}
+
+.place-client-added {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.place-added-flash {
+  display: inline-flex;
+  align-items: center;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 /* Small 'Skip' control (sets status to skip). */

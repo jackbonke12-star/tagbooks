@@ -114,9 +114,15 @@ create table prospects (
   address text,
   priority text default 'medium' check (priority in ('high', 'medium', 'low')),
   status text default 'to_visit' check (status in ('to_visit', 'visited', 'pitched', 'won', 'skip')),
+  phone text,
+  google_review_url text,
   notes text,
   created_at timestamptz not null default now()
 );
+
+-- Idempotent guards so existing databases pick up the new columns on re-run.
+alter table prospects add column if not exists phone text;
+alter table prospects add column if not exists google_review_url text;
 
 -- ---------- Indexes ----------
 create index sales_date_idx on sales (date);

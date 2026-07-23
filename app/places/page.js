@@ -128,6 +128,20 @@ function directionsHref(place) {
   return `https://maps.apple.com/?q=${encodeURIComponent(query)}`;
 }
 
+// Build a tel: href by stripping everything except digits. Display keeps the
+// phone exactly as stored. Returns null when there are no digits to dial.
+function telHref(phone) {
+  const digits = String(phone || '').replace(/\D/g, '');
+  if (!digits) return null;
+  return `tel:${digits}`;
+}
+
+// A Google search that helps locate the business's listing / review page.
+function googleFindHref(place) {
+  const q = `${place.name || ''} ${place.city || ''} Calgary reviews`.trim();
+  return `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+}
+
 export default function PlacesPage() {
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -136,8 +150,16 @@ export default function PlacesPage() {
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState(null);
   const [prefillType, setPrefillType] = useState('');
+  // Per-place inline success flash after converting a prospect to a client.
+  const [addedClientId, setAddedClientId] = useState(null);
+  // Collapsible add form. Starts closed (SSR-safe: same on server and client).
+  // The form is shown whenever the user opts to add OR is editing a row.
+  const [addOpen, setAddOpen] = useState(false);
 
   const formTopRef = useRef(null);
+
+  // The form is open when adding-with-form-shown OR editing.
+  const formOpen = addOpen || !!editing;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -166,7 +188,20 @@ export default function PlacesPage() {
     }
   }, []);
 
-  const cancelEdit = useCallback(() => setEditing(null), []);
+  // Cancel: collapse the form and clear any edit/add state.
+  const cancelEdit = useCallback(() => {
+    setEditing(null);
+    setAddOpen(false);
+  }, []);
+
+  // Open the (empty) add form and scroll to it.
+  const openAdd = useCallback(() => {
+    setEditing(null);
+    setAddOpen(true);
+    if (formTopRef.current) {
+      formTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
 
   // Tapping a target-idea chip prefills the business_type field.
   const fillType = useCallback((type) => {
@@ -210,6 +245,51 @@ export default function PlacesPage() {
         setLoadError(error.message || 'Failed to update status.');
         return;
       }
+      load();
+    },
+    [load]
+  );
+
+  // Convert a prospect into a client: insert into `clients` (stage 'pitched'),
+  // then mark this prospect 'won' so it stays as the won record. The clients
+  // insert does not need to live-update this page.
+  const addAsClient = useCallback(
+    async (place) => {
+      if (!window.confirm(`Add ${place.name || 'this place'} as a client?`))
+        return;
+
+      // Summarize business type + community into notes, falling back to any
+      // existing prospect notes.
+      const summary = [place.business_type, place.city]
+        .filter(Boolean)
+        .join(' - ');
+      const clientNotes = summary || place.notes || null;
+
+      const { error: insertError } = await supabase.from('clients').insert({
+        business_name: place.name,
+        phone: place.phone || null,
+        address: place.address || null,
+        google_review_url: place.google_review_url || null,
+        stage: 'pitched',
+        notes: clientNotes,
+      });
+      if (insertError) {
+        setLoadError(insertError.message || 'Failed to add client.');
+        return;
+      }
+
+      // Best-effort: mark the prospect won so it is not added twice.
+      const { error: updateError } = await supabase
+        .from('prospects')
+        .update({ status: 'won' })
+        .eq('id', place.id);
+      if (updateError) {
+        setLoadError(updateError.message || 'Failed to update place status.');
+        return;
+      }
+
+      setLoadError('');
+      setAddedClientId(place.id);
       load();
     },
     [load]
@@ -277,33 +357,46 @@ export default function PlacesPage() {
         </p>
       </div>
 
-      <PlaceForm
-        editing={editing}
-        prefillType={prefillType}
-        onPrefillConsumed={() => setPrefillType('')}
-        onSaved={() => {
-          setEditing(null);
-          load();
-        }}
-        onCancelEdit={cancelEdit}
-      />
-
-      {/* Target ideas: tap a chip to prefill the business type. */}
-      <div className="card target-ideas">
-        <div className="card-label">Target ideas</div>
-        <div className="idea-chips">
-          {TARGET_IDEAS.map((t) => (
-            <button
-              key={t}
-              type="button"
-              className="idea-chip"
-              onClick={() => fillType(t)}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Collapsed by default: a single compact toggle stands in for the form.
+          Opens on tap, or whenever a row is being edited. */}
+      {!formOpen ? (
+        <button
+          type="button"
+          className="btn btn-ghost add-toggle"
+          onClick={openAdd}
+        >
+          Add a place
+        </button>
+      ) : (
+        <PlaceForm
+          editing={editing}
+          prefillType={prefillType}
+          onPrefillConsumed={() => setPrefillType('')}
+          onSaved={() => {
+            setEditing(null);
+            setAddOpen(false);
+            load();
+          }}
+          onCancelEdit={cancelEdit}
+        >
+          {/* Target ideas live inside the form: only relevant while adding. */}
+          <div className="field target-ideas">
+            <label className="label">Target ideas</label>
+            <div className="idea-chips">
+              {TARGET_IDEAS.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  className="idea-chip"
+                  onClick={() => fillType(t)}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+        </PlaceForm>
+      )}
 
       {/* Status filter */}
       <div className="seg status-filter">
@@ -359,7 +452,7 @@ export default function PlacesPage() {
           <div className="muted load-line">
             {search.trim() || filter !== 'all'
               ? 'No matches.'
-              : 'No places yet. Add the first business to hit above.'}
+              : 'No places yet. Tap "Add a place" to add the first business to hit.'}
           </div>
         ) : (
           <div className="place-list">
@@ -367,11 +460,18 @@ export default function PlacesPage() {
               const sub = [place.business_type, place.city]
                 .filter(Boolean)
                 .join(' - ');
+              const tel = telHref(place.phone);
+              const isWon = place.status === 'won';
               return (
                 <div className="list-item place-row" key={place.id}>
                   <div className="place-main">
                     <span className="place-name">{place.name}</span>
                     {sub ? <span className="place-sub">{sub}</span> : null}
+                    {place.phone && tel ? (
+                      <a className="place-sub place-tel" href={tel}>
+                        {place.phone}
+                      </a>
+                    ) : null}
                     <span className="place-stamps">
                       <span
                         className={`chip prio-${place.priority || 'medium'}`}
@@ -391,14 +491,34 @@ export default function PlacesPage() {
                         {statusLabel(place.status)}
                       </button>
                     </span>
-                    <a
-                      className="place-directions"
-                      href={directionsHref(place)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Directions
-                    </a>
+                    <span className="place-links">
+                      <a
+                        className="place-directions"
+                        href={directionsHref(place)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Directions
+                      </a>
+                      <a
+                        className="place-google"
+                        href={googleFindHref(place)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Find on Google
+                      </a>
+                      {place.google_review_url ? (
+                        <a
+                          className="place-review"
+                          href={place.google_review_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Review link
+                        </a>
+                      ) : null}
+                    </span>
                   </div>
                   <div className="place-meta">
                     <div className="place-actions">
@@ -416,6 +536,26 @@ export default function PlacesPage() {
                       >
                         Delete
                       </button>
+                    </div>
+                    <div className="place-convert">
+                      {isWon ? (
+                        <span className="place-client-added muted">
+                          Client added
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn btn-convert"
+                          onClick={() => addAsClient(place)}
+                        >
+                          Add as client
+                        </button>
+                      )}
+                      {addedClientId === place.id ? (
+                        <span className="place-added-flash">
+                          Added to clients
+                        </span>
+                      ) : null}
                     </div>
                     {place.status !== 'skip' ? (
                       <button
@@ -457,11 +597,14 @@ function PlaceForm({
   onPrefillConsumed,
   onSaved,
   onCancelEdit,
+  children,
 }) {
   const [name, setName] = useState('');
   const [businessType, setBusinessType] = useState('');
   const [community, setCommunity] = useState('');
   const [address, setAddress] = useState('');
+  const [phone, setPhone] = useState('');
+  const [googleReviewUrl, setGoogleReviewUrl] = useState('');
   const [priority, setPriority] = useState('medium');
   const [status, setStatus] = useState('to_visit');
   const [notes, setNotes] = useState('');
@@ -476,6 +619,8 @@ function PlaceForm({
       setBusinessType(editing.business_type || '');
       setCommunity(editing.city || '');
       setAddress(editing.address || '');
+      setPhone(editing.phone || '');
+      setGoogleReviewUrl(editing.google_review_url || '');
       setPriority(editing.priority || 'medium');
       setStatus(editing.status || 'to_visit');
       setNotes(editing.notes || '');
@@ -497,6 +642,8 @@ function PlaceForm({
     setBusinessType('');
     setCommunity('');
     setAddress('');
+    setPhone('');
+    setGoogleReviewUrl('');
     setStatus('to_visit');
     setNotes('');
   }
@@ -516,6 +663,8 @@ function PlaceForm({
       business_type: businessType.trim() ? businessType.trim() : null,
       city: community.trim() ? community.trim() : null,
       address: address.trim() ? address.trim() : null,
+      phone: phone.trim() ? phone.trim() : null,
+      google_review_url: googleReviewUrl.trim() ? googleReviewUrl.trim() : null,
       priority,
       notes: notes.trim() ? notes.trim() : null,
     };
@@ -601,6 +750,32 @@ function PlaceForm({
       </div>
 
       <div className="field">
+        <label className="label">Phone</label>
+        <input
+          type="tel"
+          className="input"
+          value={phone}
+          inputMode="tel"
+          placeholder="Optional"
+          autoComplete="off"
+          onChange={(e) => setPhone(e.target.value)}
+        />
+      </div>
+
+      <div className="field">
+        <label className="label">Google review link</label>
+        <input
+          type="url"
+          className="input"
+          value={googleReviewUrl}
+          inputMode="url"
+          placeholder="https://g.page/r/... (optional)"
+          autoComplete="off"
+          onChange={(e) => setGoogleReviewUrl(e.target.value)}
+        />
+      </div>
+
+      <div className="field">
         <label className="label">Priority</label>
         <div className="seg">
           {PRIORITIES.map((p) => (
@@ -615,6 +790,8 @@ function PlaceForm({
           ))}
         </div>
       </div>
+
+      {!isEdit ? children : null}
 
       {isEdit ? (
         <div className="field">
@@ -647,16 +824,14 @@ function PlaceForm({
       {error ? <div className="form-error">{error}</div> : null}
 
       <div className="form-actions">
-        {isEdit ? (
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={onCancelEdit}
-            disabled={saving}
-          >
-            Cancel
-          </button>
-        ) : null}
+        <button
+          type="button"
+          className="btn btn-ghost"
+          onClick={onCancelEdit}
+          disabled={saving}
+        >
+          Cancel
+        </button>
         <button type="submit" className="btn btn-primary" disabled={saving}>
           {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Add place'}
         </button>
