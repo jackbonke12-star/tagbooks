@@ -10,11 +10,14 @@ export default function TopNav() {
   const isProducts =
     pathname === '/products' || pathname.startsWith('/products/');
   const isClients = pathname === '/clients' || pathname.startsWith('/clients/');
+  const isCoins = pathname === '/coins' || pathname.startsWith('/coins/');
   const isMoney = pathname === '/money' || pathname.startsWith('/money/');
   const isInventory =
     pathname === '/inventory' || pathname.startsWith('/inventory/');
   const isRecurring =
     pathname === '/recurring' || pathname.startsWith('/recurring/');
+  const isRequests =
+    pathname === '/requests' || pathname.startsWith('/requests/');
 
   return (
     <nav className="topnav">
@@ -35,6 +38,9 @@ export default function TopNav() {
         >
           Clients
         </Link>
+        <Link className={'topnav-link' + (isCoins ? ' on' : '')} href="/coins">
+          Coins
+        </Link>
         <Link className={'topnav-link' + (isMoney ? ' on' : '')} href="/money">
           Money
         </Link>
@@ -49,6 +55,12 @@ export default function TopNav() {
           href="/recurring"
         >
           Recurring
+        </Link>
+        <Link
+          className={'topnav-link' + (isRequests ? ' on' : '')}
+          href="/requests"
+        >
+          Requests
         </Link>
       </div>
     </nav>

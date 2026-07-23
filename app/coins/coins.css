@@ -1,0 +1,253 @@
+/* Coins page styles. Tokens from globals.css. */
+
+.coins {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Error line (shared shape with clients / money). */
+.form-error {
+  background: rgba(163, 51, 34, 0.08);
+  border-left: 3px solid var(--red);
+  color: var(--red);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.coins-head {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.coins-intro {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Toolbar: search grows, print button sits at the end. Wraps on phones. */
+.coins-toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.coins-search {
+  position: relative;
+  flex: 1 1 220px;
+  margin: 0;
+}
+
+.coins-search .input {
+  width: 100%;
+  font-size: 16px;
+  padding-right: 64px;
+}
+
+.coins-search-clear {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  min-height: 32px;
+  padding: 0 10px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.coins-search-clear:hover {
+  color: var(--ink, inherit);
+}
+
+.coins-print-btn {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 480px) {
+  .coins-print-btn {
+    flex: 1 1 100%;
+  }
+}
+
+.coins-count {
+  font-size: 13px;
+}
+
+/* Empty state: quiet ledger line. */
+.coins-empty-line {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.coins-empty-link {
+  color: var(--green);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Responsive grid of printable coin cards. */
+.coins-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 380px) {
+  .coins-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* One coin card: framed QR tile, business name, URL + copy, NFC hint. */
+.coin-card {
+  background: var(--panel);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  padding: 14px;
+  box-shadow: 0 1px 0 #d8cfbb;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* Paper tile that frames the QR. */
+.coin-tile {
+  background: #fffdf7;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coin-qr {
+  width: 100%;
+  max-width: 220px;
+  aspect-ratio: 1 / 1;
+  display: block;
+}
+
+.coin-qr svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.coin-qr-missing {
+  font-size: 13px;
+  padding: 40px 0;
+}
+
+.coin-name {
+  font-weight: 700;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.coin-url-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.coin-url {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coin-copy {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+.coin-hint {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Print sheet: high-contrast, cut-friendly ---------- */
+@media print {
+  /* Hide everything but the coin grid: nav, header, search, buttons. */
+  .topnav,
+  .coins-head,
+  .coins-empty {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+    overflow: visible;
+  }
+
+  .page {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .coins {
+    gap: 0;
+  }
+
+  .coins-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  /* Clean ink-on-white card, page-break friendly for cutting. */
+  .coin-card {
+    background: #fff;
+    border: 1px solid #000;
+    box-shadow: none;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    padding: 10px;
+    gap: 8px;
+    align-items: center;
+    text-align: center;
+  }
+
+  .coin-tile {
+    background: #fff;
+    border: none;
+    padding: 0;
+    width: 100%;
+  }
+
+  .coin-qr {
+    max-width: 100%;
+  }
+
+  .coin-name {
+    color: #000;
+    font-size: 13px;
+  }
+
+  /* Print only QR + business name: drop URL, copy button, and hint. */
+  .coin-url-row,
+  .coin-hint {
+    display: none !important;
+  }
+}

@@ -156,6 +156,31 @@
   background: rgba(43, 122, 76, 0.08);
 }
 
+/* Review link + subtle QR shortcut to the Coins page. */
+.review-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.review-qr {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.review-qr:hover {
+  color: var(--green);
+}
+
 .client-meta {
   display: flex;
   flex-direction: column;

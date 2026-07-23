@@ -1,0 +1,185 @@
+/* App Requests page styles. Tokens from globals.css. */
+
+.requests {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Error line (shared shape with money / dashboard). */
+.form-error {
+  background: rgba(163, 51, 34, 0.08);
+  border-left: 3px solid var(--red);
+  color: var(--red);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+/* Add form layout (shared shape with clients / money page). */
+.add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.add-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Intro blurb under the form label. */
+.req-intro {
+  margin: 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+@media (max-width: 640px) {
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+  .form-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Status filter: allow the segmented control to wrap on narrow screens. */
+.request-filter {
+  flex-wrap: wrap;
+}
+
+.request-filter button {
+  flex: 1 1 auto;
+  min-width: 22%;
+}
+
+/* Requests list. */
+.req-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+}
+
+.req-empty {
+  margin-top: 4px;
+}
+
+.req-row {
+  align-items: flex-start;
+}
+
+.req-row.req-done {
+  opacity: 0.55;
+}
+
+.req-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.req-title {
+  font-weight: 700;
+  font-size: 16px;
+  /* Long unbroken titles must never force sideways scroll on a phone. */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.req-done .req-title {
+  text-decoration: line-through;
+}
+
+.req-detail {
+  font-size: 14px;
+  color: var(--muted);
+  white-space: pre-wrap;
+  /* Long unbroken detail text must wrap, never overflow. */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.req-by {
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.req-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Status chip as tap-to-advance rubber stamp (mirrors print-queue status). */
+.req-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 4px 12px;
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 2px solid currentColor;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transform: rotate(-3deg);
+}
+
+/* New: amber/muted ink outline. */
+.req-status-new {
+  color: #9a6b16; /* amber ink */
+  transform: rotate(2deg);
+}
+
+/* Building: softer green ink. */
+.req-status-building {
+  color: var(--green-dim);
+  transform: rotate(-1deg);
+}
+
+/* Done: solid green stamp. */
+.req-status-done {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--panel);
+  transform: rotate(1deg);
+}
+
+.req-del {
+  min-height: 44px;
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+/* On phones, drop the status + delete controls below the request details so
+   nothing gets squeezed or pushed off the card edge. */
+@media (max-width: 480px) {
+  .req-row {
+    flex-wrap: wrap;
+  }
+  .req-main {
+    flex: 1 1 100%;
+  }
+  .req-right {
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+}

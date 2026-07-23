@@ -94,12 +94,24 @@ create table recurring (
   created_at timestamptz not null default now()
 );
 
+-- ---------- App requests ----------
+-- In-app change/feature requests: partners submit, Jack relays to the developer.
+create table requests (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  detail text,
+  submitted_by text,
+  status text not null default 'new' check (status in ('new', 'building', 'done')),
+  created_at timestamptz not null default now()
+);
+
 -- ---------- Indexes ----------
 create index sales_date_idx on sales (date);
 create index expenses_date_idx on expenses (date);
 create index clients_next_followup_idx on clients (next_followup);
 create index print_queue_status_idx on print_queue (status);
 create index recurring_active_idx on recurring (active);
+create index requests_created_at_idx on requests (created_at desc);
 
 -- ---------- Row Level Security ----------
 -- Shared workspace: any logged-in (authenticated) user can read and write all rows.
@@ -109,6 +121,7 @@ alter table expenses enable row level security;
 alter table inventory enable row level security;
 alter table print_queue enable row level security;
 alter table recurring enable row level security;
+alter table requests enable row level security;
 
 -- Clients policies (select / insert / update / delete for authenticated users).
 create policy "clients_select" on clients for select to anon, authenticated using (true);
@@ -146,6 +159,12 @@ create policy "recurring_insert" on recurring for insert to anon, authenticated 
 create policy "recurring_update" on recurring for update to anon, authenticated using (true) with check (true);
 create policy "recurring_delete" on recurring for delete to anon, authenticated using (true);
 
+-- Requests policies (select / insert / update / delete for authenticated users).
+create policy "requests_select" on requests for select to anon, authenticated using (true);
+create policy "requests_insert" on requests for insert to anon, authenticated with check (true);
+create policy "requests_update" on requests for update to anon, authenticated using (true) with check (true);
+create policy "requests_delete" on requests for delete to anon, authenticated using (true);
+
 -- ---------- Realtime ----------
 -- Supabase Realtime only streams changes for tables in the supabase_realtime
 -- publication. Add each table so open devices update live without a refresh.
@@ -156,6 +175,7 @@ alter publication supabase_realtime add table clients;
 alter publication supabase_realtime add table inventory;
 alter publication supabase_realtime add table print_queue;
 alter publication supabase_realtime add table recurring;
+alter publication supabase_realtime add table requests;
 
 -- ---------------------------------------------------------------------------
 -- Grants: allow the API roles (anon, authenticated) to use the public tables.

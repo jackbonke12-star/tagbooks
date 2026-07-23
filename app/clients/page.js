@@ -1,6 +1,7 @@
 'use client';
 
 import './clients.css';
+import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useRealtime } from '../../lib/realtime';
@@ -208,14 +209,19 @@ export default function ClientsPage() {
                       )
                     ) : null}
                     {client.google_review_url ? (
-                      <a
-                        className="review-link"
-                        href={client.google_review_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Review link
-                      </a>
+                      <span className="review-row">
+                        <a
+                          className="review-link"
+                          href={client.google_review_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Review link
+                        </a>
+                        <Link className="review-qr" href="/coins">
+                          QR
+                        </Link>
+                      </span>
                     ) : null}
                   </div>
                   <div className="client-meta">
