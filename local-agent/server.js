@@ -11,6 +11,7 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const fs = require('fs');
 const https = require('https');
+const tls = require('tls');
 const express = require('express');
 const multer = require('multer');
 const mqtt = require('mqtt');
@@ -81,6 +82,57 @@ function connect() {
   return client;
 }
 const client = connect();
+
+// ---- Camera (LAN only) ----
+// The Bambu P1 exposes a JPEG stream over TLS on port 6000, authenticated with
+// bblp + the access code. Only reachable on the printer's local network, so this
+// runs only in LAN mode. Keeps the latest frame in memory.
+let latestFrame = null;
+let cameraOk = false;
+
+function startCamera() {
+  if (MODE !== 'lan' || !LAN.host || !LAN.code) return;
+  const connectCam = () => {
+    const sock = tls.connect(
+      { host: LAN.host, port: 6000, rejectUnauthorized: false, timeout: 15000 },
+      () => {
+        const auth = Buffer.alloc(80);
+        auth.writeUInt32LE(0x40, 0);
+        auth.writeUInt32LE(0x3000, 4);
+        Buffer.from('bblp').copy(auth, 16);
+        Buffer.from(LAN.code).copy(auth, 48);
+        sock.write(auth);
+      }
+    );
+    let acc = Buffer.alloc(0);
+    let expect = null;
+    sock.on('data', (d) => {
+      acc = Buffer.concat([acc, d]);
+      // frames: 16-byte header (first 4 bytes = jpeg length LE) + jpeg payload
+      for (;;) {
+        if (expect === null) {
+          if (acc.length < 16) break;
+          expect = acc.readUInt32LE(0);
+          acc = acc.subarray(16);
+        }
+        if (acc.length < expect) break;
+        const jpg = acc.subarray(0, expect);
+        acc = acc.subarray(expect);
+        expect = null;
+        if (jpg.length > 2 && jpg[0] === 0xff && jpg[1] === 0xd8) {
+          latestFrame = Buffer.from(jpg);
+          cameraOk = true;
+        }
+      }
+    });
+    const retry = () => { cameraOk = false; setTimeout(connectCam, 5000); };
+    sock.on('error', () => {});
+    sock.on('timeout', () => sock.destroy());
+    sock.on('close', retry);
+  };
+  connectCam();
+}
+startCamera();
 
 function control(action) {
   const cmd =
@@ -173,8 +225,14 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get('/health', (_req, res) => res.json({ ok: true, connected }));
-app.get('/status', (_req, res) => res.json(status()));
+app.get('/health', (_req, res) => res.json({ ok: true, connected, camera: cameraOk }));
+app.get('/status', (_req, res) => res.json({ ...status(), camera: cameraOk }));
+app.get('/camera', (_req, res) => {
+  if (!latestFrame) return res.status(503).json({ error: MODE === 'lan' ? 'no frame yet' : 'camera needs LAN mode' });
+  res.set('Content-Type', 'image/jpeg');
+  res.set('Cache-Control', 'no-store');
+  res.send(latestFrame);
+});
 app.post('/control', express.json(), (req, res) => {
   const action = (req.body && req.body.action || '').toLowerCase();
   if (control(action)) return res.json({ ok: true });

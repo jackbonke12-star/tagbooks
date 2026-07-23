@@ -225,7 +225,70 @@ function StatusPanel({ status, connected, unreachable, acting, actionError, onCo
         </button>
       </div>
 
+      <CameraPanel />
+
       <SendFilePanel />
+    </div>
+  );
+}
+
+// Live camera view. Fetches the latest JPEG frame (PIN-gated) every ~1.5s and
+// swaps it into an <img> via an object URL. Only works when the agent is on the
+// printer's LAN (P1 camera is local-only); otherwise shows a calm placeholder.
+function CameraPanel() {
+  const [src, setSrc] = useState(null);
+  const [live, setLive] = useState(false);
+  const urlRef = useRef(null);
+
+  useEffect(() => {
+    let active = true;
+    let timer = null;
+
+    const tick = async () => {
+      try {
+        const res = await fetch('/api/printer/camera', {
+          cache: 'no-store',
+          headers: { ...pinHeaders() },
+        });
+        if (!active) return;
+        if (res.ok) {
+          const blob = await res.blob();
+          if (!active) return;
+          const url = URL.createObjectURL(blob);
+          if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+          urlRef.current = url;
+          setSrc(url);
+          setLive(true);
+        } else {
+          setLive(false);
+        }
+      } catch {
+        if (active) setLive(false);
+      } finally {
+        if (active) timer = setTimeout(tick, 1500);
+      }
+    };
+    tick();
+
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+    };
+  }, []);
+
+  return (
+    <div className="camera-panel">
+      <div className="card-label">Camera</div>
+      {live && src ? (
+        <img className="camera-frame" src={src} alt="Printer camera" />
+      ) : (
+        <div className="camera-placeholder muted">
+          Live view appears when the agent is connected on the printer's local
+          network (LAN mode). The Bambu camera is local-only, so it is not
+          available over the cloud connection.
+        </div>
+      )}
     </div>
   );
 }

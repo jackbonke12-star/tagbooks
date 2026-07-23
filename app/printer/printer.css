@@ -341,3 +341,25 @@
 }
 .print-steps li { margin-bottom: 4px; }
 .print-steps strong { color: var(--ink); font-weight: 700; }
+
+/* Camera view */
+.camera-panel { margin-top: 16px; }
+.camera-frame {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: #000;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+}
+.camera-placeholder {
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  line-height: 1.5;
+}
