@@ -19,12 +19,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 const MODELS = [
   {
     id: 'tagbooks-review-coin',
+    no: '01',
     name: 'TagBooks Review Coin',
     designer: 'TagBooks (our design)',
     platform: 'TagBooks',
     own: true,
     download: '/models/review-coin.stl',
-    image: '/models/coin-review.jpg',
+    image: '/models/model-01.jpg',
     fits: '25mm sticker · 25.6mm pocket',
     tagline: 'Our own coin — five raised stars, ready to print.',
     description:
@@ -36,6 +37,7 @@ const MODELS = [
   },
   {
     id: 'filament-sample-coin',
+    no: '02',
     name: 'Gradient Sample Coin',
     designer: 'ponzerdesigns',
     platform: 'Printables',
@@ -52,6 +54,7 @@ const MODELS = [
   },
   {
     id: 'nfc-keychain-holder',
+    no: '03',
     name: 'Keychain Coin Holder',
     designer: 'russdogg',
     platform: 'Printables',
@@ -68,6 +71,7 @@ const MODELS = [
   },
   {
     id: 'nfc-coin-holder',
+    no: '04',
     name: 'Press-Fit Coin Holder',
     designer: 'PenguinNinja',
     platform: 'Printables',
@@ -84,6 +88,7 @@ const MODELS = [
   },
   {
     id: 'nfc-tag-round',
+    no: '05',
     name: 'Simple Round Coin',
     designer: 'MakerWorld community',
     platform: 'MakerWorld',
@@ -148,7 +153,10 @@ function ModelCard({ model, onOpen }) {
       </div>
       <div className="prod-body">
         <div className="prod-top">
-          <span className="prod-name">{model.name}</span>
+          <span className="prod-name">
+            {model.no ? <span className="mdl-no">No. {model.no}</span> : null}
+            {model.name}
+          </span>
           <span className="prod-cat">{model.platform}</span>
         </div>
         <p className="prod-tagline">{model.tagline}</p>
@@ -210,7 +218,12 @@ function ModelDetail({ model, onClose }) {
 
             <div className="prod-info">
               <div className="prod-info-head">
-                <h2 className="prod-info-name">{model.name}</h2>
+                <h2 className="prod-info-name">
+                  {model.no ? (
+                    <span className="mdl-no mdl-no-lg">No. {model.no}</span>
+                  ) : null}
+                  {model.name}
+                </h2>
                 <span className="prod-cat">{model.platform}</span>
               </div>
 

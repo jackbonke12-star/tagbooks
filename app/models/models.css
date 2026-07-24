@@ -3,6 +3,29 @@
    card foot, the render caption, the license note, and the action buttons. All
    token-based so light + dark both read correctly. */
 
+/* Model reference number — a monospace ledger tag before the name so Jack can
+   say "change model 01". Inline on the card, slightly larger in the detail. */
+.mdl-no {
+  display: inline-block;
+  margin-right: 7px;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--panel2);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.mdl-no-lg {
+  font-size: 12px;
+  padding: 2px 8px;
+  margin-right: 9px;
+}
+
 /* Featured "ours" card: green frame + a stamped corner badge on the photo. */
 .mdl-own {
   border-color: var(--green);
