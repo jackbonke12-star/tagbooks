@@ -206,6 +206,16 @@ export default function DashboardPage() {
   const barWidth = Math.min(100, pct);
   const overGoal = revenue >= GOAL;
 
+  // Days left in the month + the daily pace still needed to hit the goal, and
+  // where you *should* be by today at an even pace (the marker on the bar).
+  const dayOfMonth = now.getDate();
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+  const daysLeft = Math.max(0, daysInMonth - dayOfMonth + 1);
+  const remainingToGoal = Math.max(0, GOAL - revenue);
+  const perDay = daysLeft > 0 ? remainingToGoal / daysLeft : remainingToGoal;
+  const expectedPct = Math.min(100, (dayOfMonth / daysInMonth) * 100);
+  const onPace = pct >= expectedPct;
+
   // Hero figure counts up once on load (mount-gated, reduced-motion aware).
   const heroRevenue = useCountUp(revenue, !loading);
 
@@ -310,11 +320,35 @@ export default function DashboardPage() {
             className={`goal-fill${overGoal ? ' goal-fill-win' : ''}`}
             style={{ width: `${meterReady ? barWidth : 0}%` }}
           />
+          {!overGoal ? (
+            <div
+              className="goal-pace-marker"
+              style={{ left: `${expectedPct}%` }}
+              aria-hidden="true"
+            />
+          ) : null}
         </div>
         <div className="goal-caption muted">
           {money(revenue)} of {money(GOAL)} &middot;{' '}
           <span className="goal-pct">{Math.round(pct)}%</span>
           {overGoal ? ' — goal smashed' : ''}
+        </div>
+        <div className="goal-pace">
+          <span className="goal-days">
+            {daysLeft} day{daysLeft === 1 ? '' : 's'} left
+          </span>
+          {overGoal ? (
+            <span className="goal-pace-tag green">Goal smashed</span>
+          ) : (
+            <>
+              <span className="goal-need muted">
+                {money(perDay)}/day to goal
+              </span>
+              <span className={`goal-pace-tag ${onPace ? 'green' : 'red'}`}>
+                {onPace ? 'On pace' : 'Behind pace'}
+              </span>
+            </>
+          )}
         </div>
       </div>
 

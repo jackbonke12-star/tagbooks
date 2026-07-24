@@ -415,3 +415,40 @@
     transition: none;
   }
 }
+
+/* Pace read on the goal hero: a "you should be here" marker on the bar plus a
+   days-left / per-day-needed line with an on-pace vs behind-pace tag. */
+.goal-hero .goal-track {
+  position: relative;
+}
+.goal-pace-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--ink);
+  opacity: 0.5;
+  z-index: 2;
+}
+.goal-pace {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 8px;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+.goal-days {
+  font-weight: 700;
+  color: var(--ink);
+}
+.goal-pace-tag {
+  padding: 2px 8px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
