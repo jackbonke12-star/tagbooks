@@ -1,5 +1,51 @@
 /* Notes / dev-log page styles. Tokens from globals.css. */
 
+/* ---------- Note color tokens ----------
+   Each preset maps to a solid swatch color, a subtle card tint, and a border.
+   Two token sets so light and dark both stay readable. The tint sits behind
+   note text at low opacity; the border is the same hue at higher contrast. */
+:root {
+  --note-red-dot: #a33322;
+  --note-red-tint: rgba(163, 51, 34, 0.08);
+  --note-red-line: rgba(163, 51, 34, 0.55);
+  --note-amber-dot: #b07d1a;
+  --note-amber-tint: rgba(176, 125, 26, 0.1);
+  --note-amber-line: rgba(176, 125, 26, 0.55);
+  --note-green-dot: #2f5d3a;
+  --note-green-tint: rgba(47, 93, 58, 0.09);
+  --note-green-line: rgba(47, 93, 58, 0.5);
+  --note-blue-dot: #2b5b7a;
+  --note-blue-tint: rgba(43, 91, 122, 0.09);
+  --note-blue-line: rgba(43, 91, 122, 0.5);
+  --note-violet-dot: #6a4a8c;
+  --note-violet-tint: rgba(106, 74, 140, 0.1);
+  --note-violet-line: rgba(106, 74, 140, 0.5);
+  --note-slate-dot: #5b6068;
+  --note-slate-tint: rgba(91, 96, 104, 0.1);
+  --note-slate-line: rgba(91, 96, 104, 0.5);
+}
+
+html[data-theme='dark'] {
+  --note-red-dot: #e0765f;
+  --note-red-tint: rgba(224, 118, 95, 0.14);
+  --note-red-line: rgba(224, 118, 95, 0.55);
+  --note-amber-dot: #d4a45f;
+  --note-amber-tint: rgba(212, 164, 95, 0.14);
+  --note-amber-line: rgba(212, 164, 95, 0.55);
+  --note-green-dot: #5fb072;
+  --note-green-tint: rgba(95, 176, 114, 0.14);
+  --note-green-line: rgba(95, 176, 114, 0.55);
+  --note-blue-dot: #6aa9cf;
+  --note-blue-tint: rgba(106, 169, 207, 0.14);
+  --note-blue-line: rgba(106, 169, 207, 0.55);
+  --note-violet-dot: #a98cd0;
+  --note-violet-tint: rgba(169, 140, 208, 0.14);
+  --note-violet-line: rgba(169, 140, 208, 0.55);
+  --note-slate-dot: #9aa0aa;
+  --note-slate-tint: rgba(154, 160, 170, 0.14);
+  --note-slate-line: rgba(154, 160, 170, 0.5);
+}
+
 .notes {
   display: flex;
   flex-direction: column;
@@ -159,4 +205,269 @@
 
 .note-del:active {
   color: var(--red);
+}
+
+/* ---------- Color swatches (form picker + filter row) ---------- */
+
+.note-picker,
+.note-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* One preset swatch. 44px tap target via padding-box; the visible dot is
+   28px so the row stays compact. Selected = inked ring. */
+.note-swatch {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--rule-strong);
+  background: var(--panel);
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  transition: box-shadow 0.12s ease, transform 0.06s ease;
+}
+
+.note-swatch:active {
+  transform: translateY(1px);
+}
+
+/* "None" swatch (no data-color): plain paper with a faint diagonal slash. */
+.note-swatch[data-color='']::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-top: 2px solid var(--muted);
+  transform: rotate(-45deg);
+  transform-origin: center;
+}
+
+.note-swatch[data-color='red'] {
+  background: var(--note-red-dot);
+  border-color: var(--note-red-line);
+}
+.note-swatch[data-color='amber'] {
+  background: var(--note-amber-dot);
+  border-color: var(--note-amber-line);
+}
+.note-swatch[data-color='green'] {
+  background: var(--note-green-dot);
+  border-color: var(--note-green-line);
+}
+.note-swatch[data-color='blue'] {
+  background: var(--note-blue-dot);
+  border-color: var(--note-blue-line);
+}
+.note-swatch[data-color='violet'] {
+  background: var(--note-violet-dot);
+  border-color: var(--note-violet-line);
+}
+.note-swatch[data-color='slate'] {
+  background: var(--note-slate-dot);
+  border-color: var(--note-slate-line);
+}
+
+.note-swatch.on {
+  box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--ink);
+}
+
+/* ---------- Search + filter tools ---------- */
+
+.note-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.note-search {
+  min-height: 44px;
+}
+
+/* "All" text chip sits inline with the swatches. */
+.note-chip {
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel2);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.note-chip.on {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--panel);
+}
+
+/* ---------- Tinted note rows ---------- */
+
+.note-row.note-tinted {
+  padding-left: 12px;
+  border-left: 3px solid var(--line);
+  margin-left: -3px;
+}
+
+.note-row.note-tinted[data-color='red'] {
+  background: var(--note-red-tint);
+  border-left-color: var(--note-red-line);
+}
+.note-row.note-tinted[data-color='amber'] {
+  background: var(--note-amber-tint);
+  border-left-color: var(--note-amber-line);
+}
+.note-row.note-tinted[data-color='green'] {
+  background: var(--note-green-tint);
+  border-left-color: var(--note-green-line);
+}
+.note-row.note-tinted[data-color='blue'] {
+  background: var(--note-blue-tint);
+  border-left-color: var(--note-blue-line);
+}
+.note-row.note-tinted[data-color='violet'] {
+  background: var(--note-violet-tint);
+  border-left-color: var(--note-violet-line);
+}
+.note-row.note-tinted[data-color='slate'] {
+  background: var(--note-slate-tint);
+  border-left-color: var(--note-slate-line);
+}
+
+/* ---------- Per-note actions (pin + delete) ---------- */
+
+.note-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+/* Pin toggle: a small CSS-drawn pushpin (circle head + tapered stem). */
+.note-pin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.note-pin-icon {
+  position: relative;
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--rule-strong);
+  border-radius: 50%;
+  background: var(--panel);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+/* Pin stem: a short tapered stroke under the head. */
+.note-pin-icon::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 0;
+  height: 0;
+  border-left: 2px solid transparent;
+  border-right: 2px solid transparent;
+  border-top: 6px solid var(--rule-strong);
+  transform: translateX(-50%);
+}
+
+.note-pin.on .note-pin-icon {
+  background: var(--red);
+  border-color: var(--red);
+}
+
+.note-pin.on .note-pin-icon::after {
+  border-top-color: var(--red);
+}
+
+/* ---------- Note images (thumbnails on a row) ----------
+   Reserve the thumbnail height so a row with images doesn't shift as they
+   load; each tile has a fixed box. */
+.note-imgs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.note-img {
+  display: block;
+  width: 64px;
+  height: 64px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--panel2);
+  flex-shrink: 0;
+}
+
+.note-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.note-img:hover {
+  border-color: var(--rule-strong);
+}
+
+/* ---------- Image file input on the form ---------- */
+
+.note-file-input {
+  font-size: 16px;
+  color: var(--ink);
+}
+
+.note-file-input::file-selector-button {
+  min-height: 44px;
+  margin-right: 10px;
+  padding: 0 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--panel2);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.note-file-hint {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.note-file-names {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+
+.note-file-name {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }

@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 const MORE_ITEMS = [
   { href: '/places', label: 'Places' },
   { href: '/products', label: 'Products' },
+  { href: '/models', label: 'Models' },
   { href: '/inventory', label: 'Inventory' },
   { href: '/recurring', label: 'Recurring' },
   { href: '/requests', label: 'Requests' },

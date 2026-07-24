@@ -1,109 +1,332 @@
 'use client';
 
 import './products.css';
-import { PRODUCTS, money } from '../../lib/catalog';
+import Link from 'next/link';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { supabase } from '../../lib/supabase';
+import { useRealtime } from '../../lib/realtime';
+import { money } from '../../lib/catalog';
 
-// Gallery exhibits: paper-framed photo clippings pinned into the ledger.
-const GALLERY = [
-  {
-    src: '/products/coin-finishes.jpg',
-    alt: 'Three review coin finishes: matte black, silver, and gold',
-    caption: 'Three finishes - matte black, silver, gold',
-  },
-  {
-    src: '/products/coin-stand.jpg',
-    alt: 'Review coin resting in a counter display stand',
-    caption: 'Counter display stand',
-  },
-  {
-    src: '/products/coin-tap.jpg',
-    alt: 'A customer tapping the review coin with a phone',
-    caption: 'Tap to review in seconds',
-  },
+// Placeholder shots (real coin photos in public/products) used until a product
+// carries its own images. Rotated per product so each card/gallery isn't empty
+// and the detail view can show "a couple different shots".
+const PLACEHOLDER_SHOTS = [
+  '/products/coin-hero.jpg',
+  '/products/coin-finishes.jpg',
+  '/products/coin-stand.jpg',
+  '/products/coin-tap.jpg',
 ];
 
-// Price list excludes the catch-all 'other' entry (no fixed price).
-const OFFERINGS = PRODUCTS.filter((p) => p.value !== 'other');
+// Normalize product.images (jsonb array of {url} or {name,url}) into a clean
+// list of {url, name} strings. Falls back to rotated placeholder shots keyed by
+// the product's sort/index so every product always has 2-3 sensible images.
+function imagesFor(product, index) {
+  const raw = Array.isArray(product && product.images) ? product.images : [];
+  const real = raw
+    .map((img) => {
+      if (!img) return null;
+      if (typeof img === 'string') return { url: img, name: '' };
+      if (typeof img.url === 'string' && img.url) {
+        return { url: img.url, name: img.name || '' };
+      }
+      return null;
+    })
+    .filter(Boolean);
+
+  if (real.length) return real;
+
+  // No stored images: hand out 3 rotated placeholder coin shots so galleries
+  // stay populated. Offset by the product index so cards don't all lead with
+  // the same photo.
+  const start = Number.isFinite(index) ? index : 0;
+  const shots = [];
+  for (let i = 0; i < 3; i += 1) {
+    const src = PLACEHOLDER_SHOTS[(start + i) % PLACEHOLDER_SHOTS.length];
+    shots.push({ url: src, name: '' });
+  }
+  return shots;
+}
+
+// Price line: "$149.00 / kit" or "Get a quote" when price is null.
+function priceLabel(product) {
+  if (product == null || product.price == null || product.price === '') {
+    return 'Get a quote';
+  }
+  const unit = product.price_unit ? ` / ${product.price_unit}` : '';
+  return `${money(product.price)}${unit}`;
+}
 
 export default function ProductsPage() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [openId, setOpenId] = useState(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setLoadError('');
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('sort', { ascending: true, nullsFirst: false })
+      .order('name', { ascending: true });
+    if (error) {
+      setLoadError(error.message || 'Failed to load products.');
+      setLoading(false);
+      return;
+    }
+    setProducts(data || []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  // Live updates: reload when products change on any device.
+  useRealtime(['products'], load);
+
+  // Precompute the resolved image list per product once, keyed by id.
+  const withImages = useMemo(
+    () =>
+      products.map((p, i) => ({
+        product: p,
+        images: imagesFor(p, i),
+      })),
+    [products]
+  );
+
+  const open = useMemo(
+    () => withImages.find((x) => x.product.id === openId) || null,
+    [withImages, openId]
+  );
+
+  const openDetail = useCallback((id) => setOpenId(id), []);
+  const closeDetail = useCallback(() => setOpenId(null), []);
+
   return (
     <div className="products">
-      {/* HERO - flagship coin exhibit */}
-      <div className="card prod-hero">
-        <div className="card-label">Products</div>
-        <div className="hero-inner">
-          <figure className="exhibit exhibit-hero">
-            <div className="exhibit-frame">
-              <img
-                className="exhibit-img"
-                src="/products/coin-hero.jpg"
-                alt="Round NFC review tag coin, the flagship product"
-              />
+      <div className="page-head">
+        <h1 className="page-title">Products</h1>
+        <p className="page-title-sub">
+          Tap any product for pricing, availability, and bulk order details.
+        </p>
+      </div>
+
+      {loadError ? <div className="form-error">{loadError}</div> : null}
+
+      {loading ? (
+        <div className="card">
+          <div className="muted load-line">Loading…</div>
+        </div>
+      ) : products.length === 0 ? (
+        <div className="card">
+          <div className="muted load-line">No products yet.</div>
+        </div>
+      ) : (
+        <div className="prod-grid">
+          {withImages.map(({ product, images }) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              cover={images[0]}
+              onOpen={openDetail}
+            />
+          ))}
+        </div>
+      )}
+
+      {open ? (
+        <ProductDetail
+          product={open.product}
+          images={open.images}
+          onClose={closeDetail}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+/* ---------------- Showcase card ---------------- */
+
+function ProductCard({ product, cover, onOpen }) {
+  return (
+    <button
+      type="button"
+      className="prod-card"
+      onClick={() => onOpen(product.id)}
+      aria-label={`View ${product.name} details`}
+    >
+      <div className="prod-shot">
+        <ProductImage src={cover ? cover.url : ''} alt={product.name} />
+      </div>
+      <div className="prod-body">
+        <div className="prod-top">
+          <span className="prod-name">{product.name}</span>
+          {product.category ? (
+            <span className="prod-cat">{product.category}</span>
+          ) : null}
+        </div>
+        {product.tagline ? (
+          <p className="prod-tagline">{product.tagline}</p>
+        ) : null}
+        <div className="prod-foot">
+          <span className="prod-price">{priceLabel(product)}</span>
+          <span className="prod-more" aria-hidden="true">
+            View details
+          </span>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+/* ---------------- Detail overlay ---------------- */
+
+function ProductDetail({ product, images, onClose }) {
+  const shots = Array.isArray(images) ? images : [];
+  const [active, setActive] = useState(0);
+
+  // Dismiss on Escape. Lock body scroll while the overlay is up so the sheet
+  // scrolls on its own without the page moving underneath it.
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
+
+  const activeShot = shots[active] || shots[0] || null;
+
+  return (
+    <div
+      className="prod-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${product.name} details`}
+      onClick={onClose}
+    >
+      <div className="prod-sheet" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          className="prod-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          Close
+        </button>
+
+        <div className="prod-sheet-scroll">
+          <div className="prod-detail">
+            {/* Gallery: large lead shot + a thumbnail strip of a couple more. */}
+            <div className="prod-gallery">
+              <div className="prod-gallery-main">
+                <ProductImage
+                  src={activeShot ? activeShot.url : ''}
+                  alt={product.name}
+                />
+              </div>
+              {shots.length > 1 ? (
+                <div className="prod-thumbs">
+                  {shots.map((shot, i) => (
+                    <button
+                      type="button"
+                      key={`${shot.url}-${i}`}
+                      className={`prod-thumb${i === active ? ' on' : ''}`}
+                      onClick={() => setActive(i)}
+                      aria-label={`Show image ${i + 1}`}
+                    >
+                      <ProductImage
+                        src={shot.url}
+                        alt={`${product.name} shot ${i + 1}`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              ) : null}
             </div>
-            <span className="price-stamp price-hero">$149</span>
-          </figure>
-          <div className="hero-copy">
-            <h1 className="hero-headline">THE REVIEW COIN</h1>
-            <p className="hero-pitch">
-              Customers tap it. You get 5-star reviews.
-            </p>
-            <p className="hero-note muted">
-              A round metal NFC disc. One tap on any phone opens your Google
-              review page - no app, no typing.
-            </p>
+
+            {/* Copy + specs */}
+            <div className="prod-info">
+              <div className="prod-info-head">
+                <h2 className="prod-info-name">{product.name}</h2>
+                {product.category ? (
+                  <span className="prod-cat">{product.category}</span>
+                ) : null}
+              </div>
+
+              {product.tagline ? (
+                <p className="prod-info-tagline">{product.tagline}</p>
+              ) : null}
+
+              <div className="prod-price-block">{priceLabel(product)}</div>
+
+              {product.description ? (
+                <p className="prod-desc">{product.description}</p>
+              ) : null}
+
+              <dl className="prod-specs">
+                <SpecRow label="Availability" value={product.availability} />
+                <SpecRow label="Lead time" value={product.lead_time} />
+                <SpecRow label="Bulk orders" value={product.bulk_info} />
+              </dl>
+
+              <Link href="/money" className="btn btn-primary prod-cta">
+                Add to a sale
+              </Link>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* GALLERY - exhibits pinned into the book */}
-      <div className="card">
-        <div className="card-label">The exhibit</div>
-        <div className="gallery">
-          {GALLERY.map((shot, i) => (
-            <figure className={`exhibit exhibit-tilt-${i % 3}`} key={shot.src}>
-              <div className="exhibit-frame">
-                <img
-                  className="exhibit-img"
-                  src={shot.src}
-                  alt={shot.alt}
-                />
-              </div>
-              <figcaption className="exhibit-caption">
-                {shot.caption}
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-      </div>
-
-      {/* PRICE LIST - ledger offerings */}
-      <div className="card">
-        <div className="card-label">Price list</div>
-        <div className="pricelist">
-          {OFFERINGS.map((p) => (
-            <div className="price-row" key={p.value}>
-              <span className="price-name">{p.label}</span>
-              <span className="price-dots" aria-hidden="true" />
-              <span className="price-amount">
-                {money(p.price)}
-                {p.recurring ? '/mo' : ''}
-              </span>
-            </div>
-          ))}
-        </div>
-        <div className="pricelist-rule" aria-hidden="true" />
-      </div>
-
-      {/* A small surprise tucked in the corner (Jackson's request). Decorative
-          only: does not shift layout or block anything, works light/dark. */}
-      <div className="corner-stamp" aria-hidden="true">
-        <img
-          className="corner-stamp-img"
-          src="https://noildgtslvubjkifcifm.supabase.co/storage/v1/object/public/request-files/6ed54361-ee24-4012-9fa6-c8c1c4c73171/1784848430515-0-IMG_5693.PNG"
-          alt=""
-          loading="lazy"
-        />
-      </div>
     </div>
+  );
+}
+
+// One spec line in the detail list; renders nothing when there's no value.
+function SpecRow({ label, value }) {
+  if (value == null || value === '') return null;
+  return (
+    <div className="prod-spec">
+      <dt className="prod-spec-label">{label}</dt>
+      <dd className="prod-spec-value">{value}</dd>
+    </div>
+  );
+}
+
+/* ---------------- Image with graceful fallback ---------------- */
+
+// Reserves aspect-ratio (via the CSS container) and hides itself on error so a
+// broken/missing image never shows a broken-image glyph or shifts layout. When
+// there's no src at all, or the load fails, a clean on-theme placeholder tile is
+// shown in its place.
+function ProductImage({ src, alt }) {
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [src]);
+
+  if (!src || failed) {
+    return (
+      <div className="prod-img-fallback" aria-hidden="true">
+        <span className="prod-img-fallback-mark" />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      className="prod-img"
+      src={src}
+      alt={alt || ''}
+      loading="lazy"
+      onError={() => setFailed(true)}
+    />
   );
 }

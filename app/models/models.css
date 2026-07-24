@@ -1,0 +1,61 @@
+/* Coin Models tab extras. Card + overlay styling is inherited from
+   products.css; this only adds the model-specific bits: the fit chip on the
+   card foot, the render caption, the license note, and the action buttons. All
+   token-based so light + dark both read correctly. */
+
+/* Fit size on the card foot (sits where the price would on a product card). */
+.mdl-fits {
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  color: var(--green);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* Small caption under the detail render. */
+.mdl-render-note {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* License note: a cautionary stamp above the action buttons. */
+.mdl-license {
+  margin: 16px 0 0;
+  padding: 10px 12px;
+  border: 1px dashed var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--panel2);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+/* Action row: primary source link + secondary send-to-printer link. */
+.mdl-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.mdl-cta,
+.mdl-cta-alt {
+  text-decoration: none;
+}
+
+@media (max-width: 619px) {
+  .mdl-actions {
+    flex-direction: column;
+  }
+
+  .mdl-cta,
+  .mdl-cta-alt {
+    width: 100%;
+    text-align: center;
+  }
+}

@@ -1,0 +1,288 @@
+'use client';
+
+// Coin Models tab: a curated shelf of safe, free printable NFC review-coin
+// designs. Each card shows a finished-look render and opens a detail sheet with
+// the fit size, source platform, designer, a license note, and an outbound link
+// to download the design. Static data (no DB) — these are external references we
+// pick from before printing. Reuses the Products showcase styling so it stays
+// on-theme, plus a few model-only bits in models.css.
+
+import '../products/products.css';
+import './models.css';
+import Link from 'next/link';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
+// Five hand-picked printable coin designs. Images are the finished-look renders
+// in public/models. Each links back to its free source page. License is left
+// deliberately cautious: most source pages don't state explicit commercial
+// terms, so we flag "verify before reselling" rather than assume.
+const MODELS = [
+  {
+    id: 'customizable-nfc-tag',
+    name: 'Customizable Review Coin',
+    designer: 'archquillian',
+    platform: 'MakerWorld',
+    url: 'https://makerworld.com/en/models/782699-customizable-nfc-tag',
+    image: '/models/coin-review.jpg',
+    fits: '25mm NTAG215 tag',
+    tagline: 'Add our own logo + five-star face.',
+    description:
+      'Parametric NFC disc you can brand with a custom logo, star rating, and colors. The cleanest starting point for our own review coin — pause the print, drop the tag in, resume.',
+    availability: 'Free download',
+    print_time: '~35 min each',
+    bulk_info: 'Plates 12-16 per bed for batch runs.',
+    license: 'Free download — confirm commercial-use terms on MakerWorld before reselling.',
+  },
+  {
+    id: 'filament-sample-coin',
+    name: 'Gradient Sample Coin',
+    designer: 'ponzerdesigns',
+    platform: 'Printables',
+    url: 'https://www.printables.com/model/602871-filament-sample-coin-with-nfc',
+    image: '/models/coin-gradient.jpg',
+    fits: '25mm (1 inch) NFC tag',
+    tagline: 'Translucent gradient face, premium feel.',
+    description:
+      'A coin-shaped disc with a radial transparency gradient and an embedded NFC cavity — originally a filament sample, ideal repurposed as a good-looking tap-to-review coin.',
+    availability: 'Free download',
+    print_time: '~30 min each',
+    bulk_info: 'Best one colour per plate for a clean gradient.',
+    license: 'Free download — confirm commercial-use terms on Printables before reselling.',
+  },
+  {
+    id: 'nfc-keychain-holder',
+    name: 'Keychain Coin Holder',
+    designer: 'russdogg',
+    platform: 'Printables',
+    url: 'https://www.printables.com/model/98903-nfc-tag-keychain-holder-for-ntag215-25mm-tokens',
+    image: '/models/coin-keychain.jpg',
+    fits: '25mm NTAG215 tag',
+    tagline: 'Snug press-fit, clips to keys.',
+    description:
+      'A keyring holder that grips a 25mm coin with a pressure fit — hand this version to customers who want the review tap on their keychain instead of stuck to a counter.',
+    availability: 'Free download',
+    print_time: '~25 min each',
+    bulk_info: 'Prints supportless; batch a full plate at once.',
+    license: 'Free download — confirm commercial-use terms on Printables before reselling.',
+  },
+  {
+    id: 'nfc-coin-holder',
+    name: 'Press-Fit Coin Holder',
+    designer: 'PenguinNinja',
+    platform: 'Printables',
+    url: 'https://www.printables.com/model/452782-nfc-coin-holder',
+    image: '/models/coin-custom.jpg',
+    fits: '25mm coin (28mm outer)',
+    tagline: 'Two-tone, raised custom logo.',
+    description:
+      'A press-fit holder that seats a 25mm NFC coin in a 28mm body — easy to print two-tone with a raised logo on the face for a branded counter piece.',
+    availability: 'Free download',
+    print_time: '~30 min each',
+    bulk_info: 'Colour-swap the top layers for a raised logo.',
+    license: 'Free download — confirm commercial-use terms on Printables before reselling.',
+  },
+  {
+    id: 'nfc-tag-round',
+    name: 'Simple Round Coin',
+    designer: 'MakerWorld community',
+    platform: 'MakerWorld',
+    url: 'https://makerworld.com/en/models/1708154-nfc-tag-round',
+    image: '/models/coin-simple.jpg',
+    fits: '25mm NFC tag',
+    tagline: 'Plain, fast, print-farm friendly.',
+    description:
+      'A no-frills round coin with a chamfered edge and a flush tag pocket. The workhorse for high-volume runs where a clean disc matters more than branding.',
+    availability: 'Free download',
+    print_time: '~20 min each',
+    bulk_info: 'Densely plates — best pick for large batches.',
+    license: 'Free download — confirm commercial-use terms on MakerWorld before reselling.',
+  },
+];
+
+export default function ModelsPage() {
+  const [openId, setOpenId] = useState(null);
+
+  const open = useMemo(
+    () => MODELS.find((m) => m.id === openId) || null,
+    [openId]
+  );
+
+  const openDetail = useCallback((id) => setOpenId(id), []);
+  const closeDetail = useCallback(() => setOpenId(null), []);
+
+  return (
+    <div className="products">
+      <div className="page-head">
+        <h1 className="page-title">Coin Models</h1>
+        <p className="page-title-sub">
+          Safe, free printable NFC coin designs. Tap one for the fit size,
+          source, and download link. Confirm each license before selling prints.
+        </p>
+      </div>
+
+      <div className="prod-grid">
+        {MODELS.map((model) => (
+          <ModelCard key={model.id} model={model} onOpen={openDetail} />
+        ))}
+      </div>
+
+      {open ? <ModelDetail model={open} onClose={closeDetail} /> : null}
+    </div>
+  );
+}
+
+/* ---------------- Showcase card ---------------- */
+
+function ModelCard({ model, onOpen }) {
+  return (
+    <button
+      type="button"
+      className="prod-card"
+      onClick={() => onOpen(model.id)}
+      aria-label={`View ${model.name} details`}
+    >
+      <div className="prod-shot">
+        <ModelImage src={model.image} alt={model.name} />
+      </div>
+      <div className="prod-body">
+        <div className="prod-top">
+          <span className="prod-name">{model.name}</span>
+          <span className="prod-cat">{model.platform}</span>
+        </div>
+        <p className="prod-tagline">{model.tagline}</p>
+        <div className="prod-foot">
+          <span className="mdl-fits">{model.fits}</span>
+          <span className="prod-more" aria-hidden="true">
+            View details
+          </span>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+/* ---------------- Detail overlay ---------------- */
+
+function ModelDetail({ model, onClose }) {
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      className="prod-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${model.name} details`}
+      onClick={onClose}
+    >
+      <div className="prod-sheet" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          className="prod-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          Close
+        </button>
+
+        <div className="prod-sheet-scroll">
+          <div className="prod-detail">
+            <div className="prod-gallery">
+              <div className="prod-gallery-main">
+                <ModelImage src={model.image} alt={model.name} />
+              </div>
+              <p className="mdl-render-note">
+                Rendered preview of the finished print.
+              </p>
+            </div>
+
+            <div className="prod-info">
+              <div className="prod-info-head">
+                <h2 className="prod-info-name">{model.name}</h2>
+                <span className="prod-cat">{model.platform}</span>
+              </div>
+
+              <p className="prod-info-tagline">{model.tagline}</p>
+
+              <div className="prod-price-block">{model.fits}</div>
+
+              <p className="prod-desc">{model.description}</p>
+
+              <dl className="prod-specs">
+                <SpecRow label="Designer" value={model.designer} />
+                <SpecRow label="Source" value={model.platform} />
+                <SpecRow label="Availability" value={model.availability} />
+                <SpecRow label="Print time" value={model.print_time} />
+                <SpecRow label="Bulk runs" value={model.bulk_info} />
+              </dl>
+
+              <p className="mdl-license">{model.license}</p>
+
+              <div className="mdl-actions">
+                <a
+                  href={model.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-primary mdl-cta"
+                >
+                  Open design source
+                </a>
+                <Link href="/printer" className="btn mdl-cta-alt">
+                  Send to printer
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SpecRow({ label, value }) {
+  if (value == null || value === '') return null;
+  return (
+    <div className="prod-spec">
+      <dt className="prod-spec-label">{label}</dt>
+      <dd className="prod-spec-value">{value}</dd>
+    </div>
+  );
+}
+
+/* ---------------- Image with graceful fallback ---------------- */
+
+function ModelImage({ src, alt }) {
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [src]);
+
+  if (!src || failed) {
+    return (
+      <div className="prod-img-fallback" aria-hidden="true">
+        <span className="prod-img-fallback-mark" />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      className="prod-img"
+      src={src}
+      alt={alt || ''}
+      loading="lazy"
+      onError={() => setFailed(true)}
+    />
+  );
+}

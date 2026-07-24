@@ -1,7 +1,10 @@
 /* Products showcase. Tokens come from globals.css.
-   Treatment: product photos are exhibits/clippings paper-framed into the
-   ledger book - thin ink borders, slight pinned-in rotation, typewriter
-   captions, and rubber-stamp price chips. */
+   Treatment: a clean paper-ledger product catalog. Cards are framed paper
+   clippings with a photo, a stamped category tag, and a rubber-stamp price.
+   Tapping a card opens a dismissable detail sheet with a small gallery and the
+   full spec block (pricing / availability / lead time / bulk orders). Works in
+   light and dark via tokens; every image reserves its aspect-ratio and hides on
+   error so nothing shifts. */
 
 .products {
   display: flex;
@@ -9,217 +12,420 @@
   gap: 16px;
 }
 
-/* ---------- Exhibit (paper-framed photo clipping) ---------- */
+/* ---------- Shared image frame + fallback ---------- */
 
-.exhibit {
-  margin: 0;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* The paper frame: tinted paper mat with a thin ink border, slight lift. */
-.exhibit-frame {
-  padding: 8px 8px 10px;
-  background: #fffdf7;
-  border: 1px solid var(--ink);
-  border-radius: 2px;
-  box-shadow: 0 2px 5px rgba(28, 26, 21, 0.18), 0 1px 0 #d8cfbb;
-}
-
-.exhibit-img {
+/* The <img> and the fallback tile both fill a container that already reserves
+   the aspect-ratio, so a slow/broken image never shifts layout. */
+.prod-img,
+.prod-img-fallback {
   display: block;
   width: 100%;
-  height: auto;
-  aspect-ratio: 4 / 3;
+  height: 100%;
   object-fit: cover;
   background: var(--panel2);
-  border: 1px solid var(--line);
-  border-radius: 1px;
 }
 
-/* Typewriter caption underneath. */
-.exhibit-caption {
-  margin-top: 10px;
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  color: var(--rule-strong);
-  text-align: center;
-}
-
-/* Alternating pinned-in tilts (~ -1 to +2deg). */
-.exhibit-tilt-0 {
-  transform: rotate(-1deg);
-}
-.exhibit-tilt-1 {
-  transform: rotate(2deg);
-}
-.exhibit-tilt-2 {
-  transform: rotate(-1.5deg);
-}
-
-/* ---------- Rubber-stamp price chip ---------- */
-
-.price-stamp {
-  display: inline-flex;
+/* On-theme placeholder tile: tinted paper with a faint inked ring, shown when a
+   product has no image or the image fails to load. Never a broken-image glyph. */
+.prod-img-fallback {
+  display: flex;
   align-items: center;
-  padding: 4px 12px;
-  border: 2px solid var(--green);
-  border-radius: 3px;
-  background: transparent;
-  color: var(--green);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-variant-numeric: tabular-nums;
-  transform: rotate(-4deg);
+  justify-content: center;
+  background: var(--panel2);
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent 0,
+    transparent 7px,
+    rgba(125, 116, 92, 0.08) 7px,
+    rgba(125, 116, 92, 0.08) 8px
+  );
 }
 
-/* ---------- Hero exhibit ---------- */
+.prod-img-fallback-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  background: radial-gradient(circle at 35% 32%, var(--green-dim), var(--green) 70%);
+  opacity: 0.5;
+}
 
-.prod-hero {
+/* ---------- Showcase grid ---------- */
+
+.prod-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 780px) {
+  .prod-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+@media (max-width: 440px) {
+  .prod-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Product card ---------- */
+
+.prod-card {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  background: var(--panel);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 0 var(--card-lift, #d8cfbb);
+  color: var(--ink);
+  font-family: var(--mono);
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.15s ease;
+  min-height: 44px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .prod-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(28, 26, 21, 0.16);
+  }
+}
+
+.prod-card:active {
+  transform: translateY(1px) scale(0.995);
+}
+
+/* Photo sits in a fixed 4:3 frame so the grid rows line up and never shift. */
+.prod-shot {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-bottom: 1px solid var(--rule-strong);
   overflow: hidden;
 }
 
-.hero-inner {
-  display: grid;
-  grid-template-columns: minmax(0, 300px) 1fr;
-  gap: 24px;
-  align-items: center;
-  margin-top: 6px;
-}
-
-@media (max-width: 640px) {
-  .hero-inner {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-}
-
-.exhibit-hero {
-  transform: rotate(-1.5deg);
-}
-
-.exhibit-hero .exhibit-img {
-  aspect-ratio: 1 / 1;
-}
-
-/* Price stamp pinned to the corner of the hero exhibit. */
-.price-hero {
-  position: absolute;
-  right: -6px;
-  bottom: 8px;
-  background: #fffdf7;
-  font-size: 18px;
-  padding: 6px 14px;
-}
-
-.hero-copy {
-  min-width: 0;
-}
-
-.hero-headline {
-  margin: 0;
-  font-size: 30px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  line-height: 1.1;
-  color: var(--ink);
-}
-
-.hero-pitch {
-  margin: 10px 0 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--green);
-}
-
-.hero-note {
-  margin: 12px 0 0;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-/* ---------- Gallery grid ---------- */
-
-.gallery {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 22px 18px;
-  margin-top: 10px;
-  padding: 4px 2px;
-}
-
-@media (max-width: 640px) {
-  .gallery {
-    grid-template-columns: 1fr;
-    gap: 26px;
-  }
-}
-
-/* On phones, ease the pinned-in tilts so a rotated full-width exhibit can't
-   poke past the card edge and trigger sideways scroll. */
-@media (max-width: 480px) {
-  .exhibit-tilt-0,
-  .exhibit-tilt-2 {
-    transform: rotate(-0.75deg);
-  }
-  .exhibit-tilt-1 {
-    transform: rotate(1deg);
-  }
-  .exhibit-hero {
-    transform: rotate(-1deg);
-  }
-  /* Give the framed hero a little breathing room from the corner stamp. */
-  .price-hero {
-    right: 0;
-  }
-}
-
-/* ---------- Ledger price list ---------- */
-
-.pricelist {
-  margin-top: 4px;
-}
-
-.price-row {
+.prod-body {
   display: flex;
-  align-items: baseline;
+  flex-direction: column;
   gap: 8px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
+  padding: 12px 13px 13px;
+  flex: 1;
 }
 
-.price-name {
-  font-weight: 600;
+.prod-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.prod-name {
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.25;
   color: var(--ink);
-  min-width: 0;
   overflow-wrap: anywhere;
 }
 
-/* Leader dots fill the gap between name and price. */
-.price-dots {
-  flex: 1;
-  align-self: center;
-  min-width: 12px;
-  height: 0;
-  border-bottom: 1px dotted var(--line);
-}
-
-.price-amount {
+/* Stamped category tag. */
+.prod-cat {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--panel2);
+  color: var(--muted);
+  font-size: 10px;
   font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   white-space: nowrap;
-  color: var(--ink);
 }
 
-/* Double-rule closing the section, accounting-ledger style. */
-.pricelist-rule {
-  margin-top: 4px;
-  height: 3px;
-  border-top: 1px solid var(--rule-strong);
-  border-bottom: 1px solid var(--rule-strong);
+.prod-tagline {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.prod-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 6px;
+}
+
+/* Rubber-stamp price chip. */
+.prod-price {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+  color: var(--green);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.prod-more {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ---------- Detail overlay ---------- */
+
+.prod-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  background: rgba(20, 18, 13, 0.55);
+}
+
+@media (min-width: 700px) {
+  .prod-overlay {
+    align-items: center;
+    padding: 24px;
+  }
+}
+
+.prod-sheet {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  max-height: 92dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius) var(--radius) 0 0;
+  box-shadow: 0 -6px 28px rgba(20, 18, 13, 0.4);
+  overflow: hidden;
+}
+
+@media (min-width: 700px) {
+  .prod-sheet {
+    max-height: 88dvh;
+    border-radius: var(--radius);
+    box-shadow: 0 12px 40px rgba(20, 18, 13, 0.45);
+  }
+}
+
+.prod-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  min-height: 40px;
+  min-width: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--panel2);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.prod-close:active {
+  transform: translateY(1px);
+}
+
+/* The sheet body scrolls; the overlay/backdrop stays put. */
+.prod-sheet-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.prod-detail {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  padding: 18px;
+}
+
+@media (min-width: 620px) {
+  .prod-detail {
+    grid-template-columns: minmax(0, 300px) 1fr;
+    gap: 22px;
+    padding: 22px;
+  }
+}
+
+/* ---------- Detail gallery ---------- */
+
+.prod-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.prod-gallery-main {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--panel2);
+}
+
+.prod-thumbs {
+  display: flex;
+  gap: 8px;
+}
+
+.prod-thumb {
+  flex: 1;
+  min-width: 0;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--panel2);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.12s ease, border-color 0.12s ease;
+}
+
+.prod-thumb.on {
+  opacity: 1;
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+/* ---------- Detail info ---------- */
+
+.prod-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.prod-info-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.prod-info-name {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.prod-info-tagline {
+  margin: 8px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--green);
+  overflow-wrap: anywhere;
+}
+
+/* Ledger price line: bold figure sitting on a rule. */
+.prod-price-block {
+  margin-top: 14px;
+  padding-bottom: 12px;
+  border-bottom: 3px double var(--rule-strong);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.prod-desc {
+  margin: 14px 0 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+/* Spec list: label / value rows in a two-column ledger. */
+.prod-specs {
+  margin: 16px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.prod-spec {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.prod-spec:first-child {
+  border-top: 1px solid var(--line);
+}
+
+.prod-spec-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-top: 1px;
+}
+
+.prod-spec-value {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 380px) {
+  .prod-spec {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+}
+
+/* Call-to-action: link styled as the primary stamp button. */
+.prod-cta {
+  margin-top: 18px;
+  align-self: flex-start;
+  text-decoration: none;
+}
+
+@media (max-width: 619px) {
+  .prod-cta {
+    align-self: stretch;
+    width: 100%;
+  }
 }

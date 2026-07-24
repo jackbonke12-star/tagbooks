@@ -1,7 +1,7 @@
 'use client';
 
 import './notes.css';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useRealtime } from '../../lib/realtime';
 import { shortDate } from '../../lib/catalog';
@@ -12,10 +12,75 @@ const PEOPLE = [
   { value: 'Jackson', label: 'Jackson' },
 ];
 
+// Preset note colors. `value` is stored in notes.color; null = plain paper.
+// Each maps to a --note-* tint token pair defined in notes.css so light and
+// dark both stay readable.
+export const NOTE_COLORS = [
+  { value: null, label: 'None' },
+  { value: 'red', label: 'Red' },
+  { value: 'amber', label: 'Amber' },
+  { value: 'green', label: 'Green' },
+  { value: 'blue', label: 'Blue' },
+  { value: 'violet', label: 'Violet' },
+  { value: 'slate', label: 'Slate' },
+];
+
+// Storage bucket for note images (public bucket, shared with requests).
+const FILES_BUCKET = 'request-files';
+
+// Make a filename safe for a storage key: keep letters, digits, dot, dash,
+// underscore; collapse everything else to a dash.
+function safeFileName(name) {
+  return (
+    String(name || 'file')
+      .replace(/[^a-zA-Z0-9._-]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'file'
+  );
+}
+
+// Upload image files under notes/<noteId>/ and return [{name, url}] for each.
+// Throws on the first hard failure so the caller can surface it on the error
+// line. Exported so the floating NotesBubble can reuse the exact path scheme.
+export async function uploadNoteImages(noteId, files) {
+  const out = [];
+  let i = 0;
+  for (const file of files) {
+    const path = `notes/${noteId}/${Date.now()}-${i}-${safeFileName(
+      file.name
+    )}`;
+    i += 1;
+    const { error: upErr } = await supabase.storage
+      .from(FILES_BUCKET)
+      .upload(path, file);
+    if (upErr) {
+      throw new Error(upErr.message || 'Image upload failed.');
+    }
+    const { data: pub } = supabase.storage
+      .from(FILES_BUCKET)
+      .getPublicUrl(path);
+    out.push({ name: file.name, url: pub?.publicUrl || '' });
+  }
+  return out;
+}
+
+// Pinned first, then newest created_at first. Stable for equal keys.
+function sortNotes(list) {
+  return [...list].sort((a, b) => {
+    const pa = a.pinned ? 1 : 0;
+    const pb = b.pinned ? 1 : 0;
+    if (pa !== pb) return pb - pa;
+    const ta = a.created_at || '';
+    const tb = b.created_at || '';
+    return tb < ta ? -1 : tb > ta ? 1 : 0;
+  });
+}
+
 export default function NotesPage() {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+  const [query, setQuery] = useState('');
+  const [colorFilter, setColorFilter] = useState('all');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -23,13 +88,14 @@ export default function NotesPage() {
     const { data, error } = await supabase
       .from('notes')
       .select('*')
+      .order('pinned', { ascending: false })
       .order('created_at', { ascending: false });
     if (error) {
       setLoadError(error.message || 'Failed to load notes.');
       setLoading(false);
       return;
     }
-    setNotes(data || []);
+    setNotes(sortNotes(data || []));
     setLoading(false);
   }, []);
 
@@ -59,6 +125,27 @@ export default function NotesPage() {
     [load]
   );
 
+  const togglePinned = useCallback(
+    async (note) => {
+      const next = !note.pinned;
+      // Optimistic update + re-sort so it jumps to the top immediately.
+      setNotes((prev) =>
+        sortNotes(
+          prev.map((n) => (n.id === note.id ? { ...n, pinned: next } : n))
+        )
+      );
+      const { error } = await supabase
+        .from('notes')
+        .update({ pinned: next })
+        .eq('id', note.id);
+      if (error) {
+        setLoadError(error.message || 'Failed to update note.');
+        load();
+      }
+    },
+    [load]
+  );
+
   const handleDelete = useCallback(
     async (note) => {
       if (!window.confirm('Delete this note? This cannot be undone.')) return;
@@ -72,6 +159,20 @@ export default function NotesPage() {
     [load]
   );
 
+  // Search (case-insensitive body) + color filter, over the already-sorted list.
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return notes.filter((n) => {
+      if (q && !String(n.body || '').toLowerCase().includes(q)) return false;
+      if (colorFilter !== 'all') {
+        const c = n.color || null;
+        if (colorFilter === 'none' ? c != null : c !== colorFilter)
+          return false;
+      }
+      return true;
+    });
+  }, [notes, query, colorFilter]);
+
   return (
     <div className="notes">
       <NoteForm onSaved={load} onError={setLoadError} />
@@ -80,17 +181,60 @@ export default function NotesPage() {
       <div className="card">
         <div className="card-label">Notes</div>
 
+        {/* Search + color filter */}
+        <div className="note-tools">
+          <input
+            type="search"
+            className="input note-search"
+            value={query}
+            placeholder="Search notes…"
+            aria-label="Search notes"
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <div className="note-filter" role="group" aria-label="Filter by color">
+            <button
+              type="button"
+              className={`note-chip${colorFilter === 'all' ? ' on' : ''}`}
+              onClick={() => setColorFilter('all')}
+            >
+              All
+            </button>
+            {NOTE_COLORS.map((c) => {
+              const key = c.value == null ? 'none' : c.value;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  className={`note-swatch${
+                    colorFilter === key ? ' on' : ''
+                  }`}
+                  data-color={c.value || ''}
+                  aria-label={`Filter ${c.label}`}
+                  aria-pressed={colorFilter === key}
+                  title={c.label}
+                  onClick={() => setColorFilter(key)}
+                />
+              );
+            })}
+          </div>
+        </div>
+
         {loadError ? <div className="form-error">{loadError}</div> : null}
 
         {loading ? (
           <div className="muted load-line">Loading…</div>
-        ) : notes.length === 0 ? (
-          <div className="muted note-empty load-line">No notes yet.</div>
+        ) : visible.length === 0 ? (
+          <div className="muted note-empty load-line">
+            {notes.length === 0 ? 'No notes yet.' : 'No notes match.'}
+          </div>
         ) : (
           <div className="note-list">
-            {notes.map((note) => (
+            {visible.map((note) => (
               <div
-                className={`note-row${note.done ? ' note-done' : ''}`}
+                className={`note-row${note.done ? ' note-done' : ''}${
+                  note.color ? ' note-tinted' : ''
+                }`}
+                data-color={note.color || ''}
                 key={note.id}
               >
                 <button
@@ -104,6 +248,7 @@ export default function NotesPage() {
                 </button>
                 <div className="note-main">
                   <span className="note-body">{note.body}</span>
+                  <NoteImages images={note.images} />
                   <span className="note-by">
                     by {note.author || 'Someone'}
                     {note.created_at
@@ -111,13 +256,25 @@ export default function NotesPage() {
                       : ''}
                   </span>
                 </div>
-                <button
-                  type="button"
-                  className="note-del"
-                  onClick={() => handleDelete(note)}
-                >
-                  Delete
-                </button>
+                <div className="note-actions">
+                  <button
+                    type="button"
+                    className={`note-pin${note.pinned ? ' on' : ''}`}
+                    onClick={() => togglePinned(note)}
+                    aria-pressed={note.pinned}
+                    aria-label={note.pinned ? 'Unpin note' : 'Pin note'}
+                    title={note.pinned ? 'Unpin' : 'Pin'}
+                  >
+                    <span className="note-pin-icon" aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    className="note-del"
+                    onClick={() => handleDelete(note)}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -132,13 +289,42 @@ function dateOnly(ts) {
   return String(ts).slice(0, 10);
 }
 
+/* ---------------- Note images ---------------- */
+
+// Render image thumbnails for a note. Reserved height so the row doesn't shift
+// as thumbnails load. Clicking opens the full image in a new tab.
+function NoteImages({ images }) {
+  const list = Array.isArray(images) ? images.filter((im) => im && im.url) : [];
+  if (list.length === 0) return null;
+  return (
+    <div className="note-imgs">
+      {list.map((im, i) => (
+        <a
+          key={`${im.url}-${i}`}
+          className="note-img"
+          href={im.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={im.name || 'image'}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={im.url} alt={im.name || 'note image'} loading="lazy" />
+        </a>
+      ))}
+    </div>
+  );
+}
+
 /* ---------------- Note form ---------------- */
 
 function NoteForm({ onSaved, onError }) {
   const [body, setBody] = useState('');
   const [author, setAuthor] = useState(PEOPLE[0].value);
+  const [color, setColor] = useState(null);
+  const [files, setFiles] = useState([]);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef(null);
 
   async function submit(e) {
     e.preventDefault();
@@ -150,19 +336,42 @@ function NoteForm({ onSaved, onError }) {
     }
 
     setSaving(true);
-    const payload = {
-      body: body.trim(),
-      author,
-      done: false,
-    };
-    const { error: err } = await supabase.from('notes').insert(payload);
-    setSaving(false);
-    if (err) {
-      setError(err.message || 'Failed to add note.');
+
+    // Insert the note first so images can live under notes/<id>/.
+    const { data: inserted, error: err } = await supabase
+      .from('notes')
+      .insert({ body: body.trim(), author, color, done: false })
+      .select()
+      .single();
+
+    if (err || !inserted) {
+      setSaving(false);
+      setError((err && err.message) || 'Failed to add note.');
       return;
     }
-    // Clear the note but keep the author selection sticky.
+
+    // Upload any attached images, then patch the note with their URLs.
+    if (files.length) {
+      try {
+        const uploaded = await uploadNoteImages(inserted.id, files);
+        const { error: upErr } = await supabase
+          .from('notes')
+          .update({ images: uploaded })
+          .eq('id', inserted.id);
+        if (upErr) throw new Error(upErr.message || 'Failed to save images.');
+      } catch (uploadErr) {
+        setSaving(false);
+        setError(uploadErr.message || 'Image upload failed.');
+        onSaved();
+        return;
+      }
+    }
+
+    setSaving(false);
+    // Clear the note + images but keep author + color sticky.
     setBody('');
+    setFiles([]);
+    if (fileInputRef.current) fileInputRef.current.value = '';
     if (onError) onError('');
     onSaved();
   }
@@ -181,6 +390,52 @@ function NoteForm({ onSaved, onError }) {
           placeholder="What happened / what's next?"
           onChange={(e) => setBody(e.target.value)}
         />
+      </div>
+
+      <div className="field">
+        <label className="label">Color</label>
+        <div className="note-picker" role="group" aria-label="Note color">
+          {NOTE_COLORS.map((c) => {
+            const active = (color || null) === c.value;
+            return (
+              <button
+                key={c.value == null ? 'none' : c.value}
+                type="button"
+                className={`note-swatch${active ? ' on' : ''}`}
+                data-color={c.value || ''}
+                aria-label={c.label}
+                aria-pressed={active}
+                title={c.label}
+                onClick={() => setColor(c.value)}
+              />
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="field">
+        <label className="label">Images</label>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="note-file-input"
+          onChange={(e) => setFiles(Array.from(e.target.files || []))}
+        />
+        {files.length ? (
+          <div className="note-file-names muted">
+            {files.map((f, i) => (
+              <span key={`${f.name}-${i}`} className="note-file-name">
+                {f.name}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <span className="note-file-hint muted">
+            Optional - attach screenshots or reference images.
+          </span>
+        )}
       </div>
 
       <div className="field">

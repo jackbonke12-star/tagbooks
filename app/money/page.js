@@ -13,11 +13,13 @@ import {
   money,
   localToday,
   monthRange,
+  shortDate,
   isKit,
   needsLogoStand,
 } from '../../lib/catalog';
 import MonthSwitcher from '../../components/MonthSwitcher';
 import EntryRow from '../../components/EntryRow';
+import MoneyCalendar from '../../components/MoneyCalendar';
 
 export default function MoneyPage() {
   // Selected LOCAL month.
@@ -27,6 +29,12 @@ export default function MoneyPage() {
 
   // Which add form is showing.
   const [mode, setMode] = useState('sale'); // 'sale' | 'expense'
+
+  // Which view of the month is showing.
+  const [view, setView] = useState('entries'); // 'entries' | 'breakdown' | 'calendar'
+
+  // Calendar: currently selected day (YYYY-MM-DD) or null for the whole month.
+  const [selectedDay, setSelectedDay] = useState(null);
 
   // Data.
   const [sales, setSales] = useState([]);
@@ -131,8 +139,28 @@ export default function MoneyPage() {
     [expenses]
   );
 
+  // Spreadsheet breakdown for the selected month.
+  // Income grouped by product; expenses grouped by category. Each group carries
+  // a count + subtotal, sorted by subtotal (largest first).
+  const incomeGroups = useMemo(
+    () => groupBy(sales, (s) => s.product || 'other', productLabel),
+    [sales]
+  );
+  const expenseGroups = useMemo(
+    () => groupBy(expenses, (e) => e.category || 'other', categoryLabel),
+    [expenses]
+  );
+  const net = salesTotal - expensesTotal;
+
+  // Entries filtered to the selected calendar day (or all rows when none).
+  const dayRows = useMemo(() => {
+    if (!selectedDay) return rows;
+    return rows.filter((r) => r.date === selectedDay);
+  }, [rows, selectedDay]);
+
   function onMonthChange(y, m) {
     setEditing(null);
+    setSelectedDay(null);
     setYear(y);
     setMonthIndex(m);
   }
@@ -266,51 +294,294 @@ export default function MoneyPage() {
         />
       )}
 
-      {/* Entries table */}
-      <div className="card">
-        <div className="card-label">This month</div>
-        {loadError ? <div className="form-error">{loadError}</div> : null}
-        {loading ? (
-          <div className="muted load-line">Loading…</div>
-        ) : rows.length === 0 ? (
-          <div className="muted load-line">No entries this month.</div>
-        ) : (
-          <div className="entry-list">
-            {rows.map((entry) => (
-              <EntryRow
-                key={`${entry.kind}-${entry.id}`}
-                entry={entry}
-                onEdit={startEdit}
-                onDelete={handleDelete}
-              />
-            ))}
-          </div>
-        )}
-
-        <div className="month-totals">
-          <span className="green">Sales {money(salesTotal)}</span>
-          <span className="red">Expenses {money(expensesTotal)}</span>
-        </div>
-
-        <div className="row export-row">
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={() => doExport('month')}
-            disabled={exporting}
-          >
-            {exporting ? 'Exporting…' : 'Export month CSV'}
-          </button>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={() => doExport('year')}
-            disabled={exporting}
-          >
-            {exporting ? 'Exporting…' : 'Export year CSV'}
-          </button>
-        </div>
+      {/* View toggle: Entries / Breakdown / Calendar */}
+      <div className="seg view-toggle">
+        <button
+          type="button"
+          className={view === 'entries' ? 'on' : ''}
+          onClick={() => setView('entries')}
+        >
+          Entries
+        </button>
+        <button
+          type="button"
+          className={view === 'breakdown' ? 'on' : ''}
+          onClick={() => setView('breakdown')}
+        >
+          Breakdown
+        </button>
+        <button
+          type="button"
+          className={view === 'calendar' ? 'on' : ''}
+          onClick={() => setView('calendar')}
+        >
+          Calendar
+        </button>
       </div>
+
+      {/* ENTRIES view: the existing list */}
+      {view === 'entries' ? (
+        <div className="card">
+          <div className="card-label">This month</div>
+          {loadError ? <div className="form-error">{loadError}</div> : null}
+          {loading ? (
+            <div className="muted load-line">Loading…</div>
+          ) : rows.length === 0 ? (
+            <div className="muted load-line">No entries this month.</div>
+          ) : (
+            <div className="entry-list">
+              {rows.map((entry) => (
+                <EntryRow
+                  key={`${entry.kind}-${entry.id}`}
+                  entry={entry}
+                  onEdit={startEdit}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+          )}
+
+          <div className="month-totals">
+            <span className="green">Sales {money(salesTotal)}</span>
+            <span className="red">Expenses {money(expensesTotal)}</span>
+          </div>
+
+          <div className="row export-row">
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => doExport('month')}
+              disabled={exporting}
+            >
+              {exporting ? 'Exporting…' : 'Export month CSV'}
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => doExport('year')}
+              disabled={exporting}
+            >
+              {exporting ? 'Exporting…' : 'Export year CSV'}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {/* BREAKDOWN view: spreadsheet-style ledger */}
+      {view === 'breakdown' ? (
+        <div className="card">
+          <div className="card-label">Breakdown</div>
+          {loadError ? <div className="form-error">{loadError}</div> : null}
+          {loading ? (
+            <div className="muted load-line">Loading…</div>
+          ) : (
+            <BreakdownTable
+              incomeGroups={incomeGroups}
+              expenseGroups={expenseGroups}
+              salesTotal={salesTotal}
+              expensesTotal={expensesTotal}
+              net={net}
+            />
+          )}
+        </div>
+      ) : null}
+
+      {/* CALENDAR view: month grid + selected-day entries */}
+      {view === 'calendar' ? (
+        <div className="card">
+          <div className="card-label">Calendar</div>
+          {loadError ? <div className="form-error">{loadError}</div> : null}
+          {loading ? (
+            <div className="muted load-line">Loading…</div>
+          ) : (
+            <>
+              <MoneyCalendar
+                year={year}
+                monthIndex={monthIndex}
+                sales={sales}
+                expenses={expenses}
+                selectedDay={selectedDay}
+                onSelectDay={setSelectedDay}
+              />
+
+              <div className="cal-day-panel">
+                <div className="cal-day-panel-head">
+                  <span className="cal-day-panel-title">
+                    {selectedDay ? shortDate(selectedDay) : 'Whole month'}
+                  </span>
+                  {selectedDay ? (
+                    <button
+                      type="button"
+                      className="cal-clear-day"
+                      onClick={() => setSelectedDay(null)}
+                    >
+                      Clear
+                    </button>
+                  ) : null}
+                </div>
+                {dayRows.length === 0 ? (
+                  <div className="muted load-line">
+                    {selectedDay
+                      ? 'No entries on this day.'
+                      : 'No entries this month.'}
+                  </div>
+                ) : (
+                  <div className="entry-list">
+                    {dayRows.map((entry) => (
+                      <EntryRow
+                        key={`${entry.kind}-${entry.id}`}
+                        entry={entry}
+                        onEdit={startEdit}
+                        onDelete={handleDelete}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/* ---------------- Breakdown helpers ---------------- */
+
+// Group rows by a key, summing amount and counting rows per group. Returns an
+// array of { key, label, count, total } sorted by total descending.
+function groupBy(list, keyFn, labelFn) {
+  const map = new Map();
+  for (const row of list) {
+    const key = keyFn(row);
+    const cur = map.get(key) || { key, label: labelFn(key), count: 0, total: 0 };
+    cur.count += 1;
+    cur.total += Number(row.amount || 0);
+    map.set(key, cur);
+  }
+  return Array.from(map.values()).sort((a, b) => b.total - a.total);
+}
+
+// Percent-of-total string for a group, e.g. "42%". Empty when the total is 0.
+function pct(part, whole) {
+  if (!whole) return '';
+  return `${Math.round((part / whole) * 100)}%`;
+}
+
+/* ---------------- Breakdown table ---------------- */
+
+// Excel/spreadsheet-style ledger for the month: an INCOME section grouped by
+// product and an EXPENSES section grouped by category, each with count +
+// subtotal + share, then colored TOTAL rows and a NET row.
+function BreakdownTable({
+  incomeGroups,
+  expenseGroups,
+  salesTotal,
+  expensesTotal,
+  net,
+}) {
+  const empty = incomeGroups.length === 0 && expenseGroups.length === 0;
+  if (empty) {
+    return <div className="muted load-line">No entries this month.</div>;
+  }
+  return (
+    <div className="bd-scroll">
+      <table className="bd-table">
+        <colgroup>
+          <col className="bd-col-name" />
+          <col className="bd-col-count" />
+          <col className="bd-col-share" />
+          <col className="bd-col-amount" />
+        </colgroup>
+        <thead>
+          <tr className="bd-section-row">
+            <th colSpan={4} className="bd-section green">
+              Income
+            </th>
+          </tr>
+          <tr className="bd-head-row">
+            <th className="bd-l">Product</th>
+            <th className="bd-r">Qty</th>
+            <th className="bd-r">Share</th>
+            <th className="bd-r">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {incomeGroups.length === 0 ? (
+            <tr className="bd-row">
+              <td className="bd-l muted" colSpan={4}>
+                No income this month.
+              </td>
+            </tr>
+          ) : (
+            incomeGroups.map((g) => (
+              <tr key={g.key} className="bd-row">
+                <td className="bd-l">{g.label}</td>
+                <td className="bd-r bd-num">{g.count}</td>
+                <td className="bd-r bd-num muted">{pct(g.total, salesTotal)}</td>
+                <td className="bd-r bd-num">{money(g.total)}</td>
+              </tr>
+            ))
+          )}
+          <tr className="bd-total-row">
+            <td className="bd-l green">Total income</td>
+            <td className="bd-r" />
+            <td className="bd-r" />
+            <td className="bd-r bd-num green">{money(salesTotal)}</td>
+          </tr>
+        </tbody>
+
+        <thead>
+          <tr className="bd-section-row">
+            <th colSpan={4} className="bd-section red">
+              Expenses
+            </th>
+          </tr>
+          <tr className="bd-head-row">
+            <th className="bd-l">Category</th>
+            <th className="bd-r">Qty</th>
+            <th className="bd-r">Share</th>
+            <th className="bd-r">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {expenseGroups.length === 0 ? (
+            <tr className="bd-row">
+              <td className="bd-l muted" colSpan={4}>
+                No expenses this month.
+              </td>
+            </tr>
+          ) : (
+            expenseGroups.map((g) => (
+              <tr key={g.key} className="bd-row">
+                <td className="bd-l">{g.label}</td>
+                <td className="bd-r bd-num">{g.count}</td>
+                <td className="bd-r bd-num muted">
+                  {pct(g.total, expensesTotal)}
+                </td>
+                <td className="bd-r bd-num">{money(g.total)}</td>
+              </tr>
+            ))
+          )}
+          <tr className="bd-total-row">
+            <td className="bd-l red">Total expenses</td>
+            <td className="bd-r" />
+            <td className="bd-r" />
+            <td className="bd-r bd-num red">{money(expensesTotal)}</td>
+          </tr>
+        </tbody>
+
+        <tfoot>
+          <tr className="bd-net-row">
+            <td className="bd-l">Net</td>
+            <td className="bd-r" />
+            <td className="bd-r" />
+            <td className={`bd-r bd-num ${net >= 0 ? 'green' : 'red'}`}>
+              {money(net)}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
   );
 }
