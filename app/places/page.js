@@ -142,6 +142,44 @@ function googleFindHref(place) {
   return `https://www.google.com/search?q=${encodeURIComponent(q)}`;
 }
 
+// ---- Follow-up helpers (all LOCAL date math; never toISOString) ----
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// Today as 'YYYY-MM-DD' in local time.
+function localTodayStr() {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
+// Format 'YYYY-MM-DD' as 'Jul 26' by parsing the parts (no UTC shift).
+function fmtShort(ymd) {
+  if (!ymd) return '';
+  const [y, m, d] = String(ymd).split('-').map(Number);
+  if (!y || !m || !d) return '';
+  return `${MONTHS[m - 1]} ${d}`;
+}
+
+// Shift a 'YYYY-MM-DD' by n days using local date math.
+function addDays(ymd, n) {
+  const [y, m, d] = String(ymd).split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + n);
+  const mm = String(dt.getMonth() + 1).padStart(2, '0');
+  const dd = String(dt.getDate()).padStart(2, '0');
+  return `${dt.getFullYear()}-${mm}-${dd}`;
+}
+
+// Classify a follow-up date vs today: overdue / today / upcoming (ISO strings
+// sort chronologically, so plain string comparison is safe here).
+function followupState(ymd, today) {
+  if (!ymd) return null;
+  if (ymd < today) return { cls: 'overdue', label: `Overdue ${fmtShort(ymd)}` };
+  if (ymd === today) return { cls: 'today', label: 'Today' };
+  return { cls: 'upcoming', label: fmtShort(ymd) };
+}
+
 export default function PlacesPage() {
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -312,6 +350,54 @@ export default function PlacesPage() {
     [load]
   );
 
+  // Set / clear / snooze the follow-up date on a prospect.
+  const setFollowup = useCallback(
+    async (place, value) => {
+      const { error } = await supabase
+        .from('prospects')
+        .update({ followup_date: value || null })
+        .eq('id', place.id);
+      if (error) {
+        setLoadError(error.message || 'Failed to set follow-up.');
+        return;
+      }
+      load();
+    },
+    [load]
+  );
+
+  // Today (local) and the callback queue: prospects with a follow-up due today
+  // or overdue, still in play (not won / skipped), soonest first then priority.
+  const today = useMemo(() => localTodayStr(), []);
+  const dueFollowups = useMemo(() => {
+    return places
+      .filter(
+        (p) =>
+          p.followup_date &&
+          p.status !== 'won' &&
+          p.status !== 'skip' &&
+          p.followup_date <= today
+      )
+      .sort((a, b) => {
+        if (a.followup_date !== b.followup_date)
+          return a.followup_date < b.followup_date ? -1 : 1;
+        return (PRIORITY_RANK[a.priority] ?? 1) - (PRIORITY_RANK[b.priority] ?? 1);
+      });
+  }, [places, today]);
+
+  // Count of follow-ups still ahead (for a small "upcoming" note).
+  const upcomingCount = useMemo(
+    () =>
+      places.filter(
+        (p) =>
+          p.followup_date &&
+          p.status !== 'won' &&
+          p.status !== 'skip' &&
+          p.followup_date > today
+      ).length,
+    [places, today]
+  );
+
   // Counts per status for the filter labels (skip excluded from these tabs).
   const counts = useMemo(() => {
     const c = { all: 0, to_visit: 0, visited: 0, pitched: 0, won: 0 };
@@ -443,6 +529,77 @@ export default function PlacesPage() {
         </PlaceForm>
       )}
 
+      {/* Callback queue: who to follow up with today (due or overdue). */}
+      {dueFollowups.length > 0 ? (
+        <div className="card followup-queue">
+          <div className="card-label">
+            Follow up today <span className="fq-count">{dueFollowups.length}</span>
+          </div>
+          <div className="fq-list">
+            {dueFollowups.map((place) => {
+              const st = followupState(place.followup_date, today);
+              const tel = telHref(place.phone);
+              const sub = [place.business_type, place.city]
+                .filter(Boolean)
+                .join(' - ');
+              return (
+                <div className="fq-item" key={place.id}>
+                  <div className="fq-main">
+                    <span className="fq-name">{place.name}</span>
+                    {sub ? <span className="fq-sub">{sub}</span> : null}
+                  </div>
+                  <div className="fq-side">
+                    <span className={`fq-date fu-${st ? st.cls : 'upcoming'}`}>
+                      {st ? st.label : ''}
+                    </span>
+                    <div className="fq-actions">
+                      {tel ? (
+                        <a className="fq-btn" href={tel}>
+                          Call
+                        </a>
+                      ) : null}
+                      <a
+                        className="fq-btn"
+                        href={directionsHref(place)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Directions
+                      </a>
+                      <button
+                        type="button"
+                        className="fq-btn"
+                        onClick={() => setFollowup(place, addDays(today, 3))}
+                      >
+                        Snooze 3d
+                      </button>
+                      <button
+                        type="button"
+                        className="fq-btn fq-done"
+                        onClick={() => setFollowup(place, '')}
+                      >
+                        Done
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {upcomingCount > 0 ? (
+            <div className="fq-upcoming muted">
+              +{upcomingCount} upcoming follow-up{upcomingCount === 1 ? '' : 's'}
+            </div>
+          ) : null}
+        </div>
+      ) : upcomingCount > 0 ? (
+        <div className="card followup-queue fq-empty">
+          <div className="fq-clear muted">
+            No follow-ups due. {upcomingCount} scheduled ahead.
+          </div>
+        </div>
+      ) : null}
+
       {/* Status filter */}
       <div className="seg status-filter">
         {STATUS_FILTERS.map((s) => (
@@ -536,6 +693,7 @@ export default function PlacesPage() {
                     .join(' - ');
                   const tel = telHref(place.phone);
                   const isWon = place.status === 'won';
+                  const fu = followupState(place.followup_date, today);
                   return (
                 <div className="list-item place-row" key={place.id}>
                   <div className="place-main">
@@ -564,6 +722,15 @@ export default function PlacesPage() {
                       >
                         {statusLabel(place.status)}
                       </button>
+                      {fu ? (
+                        <span className={`chip fu-chip fu-${fu.cls}`}>
+                          {fu.cls === 'today'
+                            ? 'Follow up today'
+                            : fu.cls === 'overdue'
+                            ? fu.label
+                            : `Follow up ${fu.label}`}
+                        </span>
+                      ) : null}
                     </span>
                     <span className="place-links">
                       <a
@@ -640,6 +807,26 @@ export default function PlacesPage() {
                         Skip
                       </button>
                     ) : null}
+                    <div className="place-followup">
+                      <label className="place-fu-label">Follow-up</label>
+                      <input
+                        type="date"
+                        className="place-fu-input"
+                        value={place.followup_date || ''}
+                        onChange={(e) => setFollowup(place, e.target.value)}
+                        aria-label={`Set follow-up date for ${place.name}`}
+                      />
+                      {place.followup_date ? (
+                        <button
+                          type="button"
+                          className="place-fu-clear"
+                          onClick={() => setFollowup(place, '')}
+                          aria-label="Clear follow-up"
+                        >
+                          Clear
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
                   );
@@ -684,6 +871,7 @@ function PlaceForm({
   const [priority, setPriority] = useState('medium');
   const [status, setStatus] = useState('to_visit');
   const [notes, setNotes] = useState('');
+  const [followupDate, setFollowupDate] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -700,6 +888,7 @@ function PlaceForm({
       setPriority(editing.priority || 'medium');
       setStatus(editing.status || 'to_visit');
       setNotes(editing.notes || '');
+      setFollowupDate(editing.followup_date || '');
       setError('');
     }
   }, [editing]);
@@ -722,6 +911,7 @@ function PlaceForm({
     setGoogleReviewUrl('');
     setStatus('to_visit');
     setNotes('');
+    setFollowupDate('');
   }
 
   async function submit(e) {
@@ -743,6 +933,7 @@ function PlaceForm({
       google_review_url: googleReviewUrl.trim() ? googleReviewUrl.trim() : null,
       priority,
       notes: notes.trim() ? notes.trim() : null,
+      followup_date: followupDate ? followupDate : null,
     };
 
     let res;
@@ -886,6 +1077,16 @@ function PlaceForm({
           </div>
         </div>
       ) : null}
+
+      <div className="field">
+        <label className="label">Follow-up date</label>
+        <input
+          type="date"
+          className="input"
+          value={followupDate}
+          onChange={(e) => setFollowupDate(e.target.value)}
+        />
+      </div>
 
       <div className="field">
         <label className="label">Notes</label>

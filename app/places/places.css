@@ -531,3 +531,153 @@
   color: var(--red-dim);
   transform: rotate(2deg);
 }
+
+/* ---------- Follow-up callback queue + controls ---------- */
+.followup-queue {
+  border-left: 3px solid var(--green);
+}
+.fq-count {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--green);
+  color: var(--panel);
+  font-size: 12px;
+  font-weight: 700;
+}
+.fq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+.fq-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.fq-item:last-child {
+  border-bottom: 0;
+}
+.fq-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.fq-name {
+  font-weight: 700;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.fq-sub {
+  font-size: 12px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.fq-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.fq-date {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.fq-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.fq-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--panel2);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+.fq-btn:active {
+  transform: translateY(1px);
+}
+.fq-done {
+  border-color: var(--green);
+  color: var(--green);
+}
+.fq-upcoming,
+.fq-clear {
+  margin-top: 8px;
+  font-size: 12px;
+}
+.fq-empty .fq-clear {
+  margin-top: 0;
+}
+
+/* Follow-up state colors, shared by the queue date + the row chip. */
+.fu-overdue {
+  color: var(--red);
+}
+.fu-today {
+  color: var(--green);
+}
+.fu-upcoming {
+  color: var(--muted);
+}
+.fu-chip {
+  transform: rotate(-2deg);
+}
+
+/* Inline follow-up date control on each place row. */
+.place-followup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.place-fu-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.place-fu-input {
+  min-height: 34px;
+  padding: 2px 8px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 16px;
+}
+.place-fu-clear {
+  min-height: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
