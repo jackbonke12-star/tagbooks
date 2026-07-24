@@ -12,6 +12,7 @@ import {
   localToday,
   shortDate,
 } from '../../lib/catalog';
+import TabTip from '../../components/TabTip';
 
 // Build a tel: href by stripping everything except digits, then add a
 // leading +1 for US dialing. Display keeps the phone exactly as entered.
@@ -122,6 +123,12 @@ export default function ClientsPage() {
 
   return (
     <div className="clients" ref={formTopRef}>
+      <TabTip id="clients">
+        Clients are your won customers — use &quot;Pull from Places&quot; to
+        convert a scouted business, and share the QR or Review link to collect
+        Google reviews.
+      </TabTip>
+
       <ClientForm
         editing={editing}
         onSaved={() => {

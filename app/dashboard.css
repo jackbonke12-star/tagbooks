@@ -488,6 +488,7 @@
   .dash > .card-link,
   .dash > .goal-hero,
   .dash > .stat-grid,
+  .dash > .flow-strip,
   .dash > .products-callout {
     animation: dash-rise 0.34s ease both;
   }
@@ -555,4 +556,245 @@
   font-size: 11px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+/* ---------- TODAY action center ----------
+   The dashboard's "do this now" list: a prioritized stack of real next-actions,
+   each a row with a name/context on the left and one-tap actions on the right.
+   Token-based, reads in both themes, 44px tap targets, no horizontal overflow. */
+.today-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.today-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 6px;
+}
+
+.today-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+  min-width: 0;
+}
+.today-list > .today-item:first-child {
+  border-top: none;
+}
+
+/* The scouting-nudge row is a whole-row link; keep it looking like a row. */
+.today-item-link {
+  text-decoration: none;
+  color: inherit;
+}
+.today-item-link:active {
+  background: rgba(63, 138, 79, 0.08);
+}
+
+.today-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.today-item-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.today-name {
+  font-weight: 700;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+/* Client name doubles as a shortcut to that client. Plain-name look, padded to
+   a finger-sized hit area within the row. */
+.today-name-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 3px 5px;
+  margin: -3px -5px;
+  border-radius: var(--radius);
+  color: var(--ink);
+  text-decoration: none;
+}
+.today-name-link:active {
+  background: rgba(63, 138, 79, 0.12);
+}
+
+.today-tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+.today-tag-stock {
+  color: var(--red);
+  border-color: var(--red);
+}
+.today-tag-visit {
+  color: var(--green);
+  border-color: var(--green);
+}
+
+.today-due {
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.today-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Compact action pills. All clear the 44px min tap target. */
+.today-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 56px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--rule-strong);
+  background: var(--panel2);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 1px 0 var(--card-lift, #d8cfbb);
+}
+.today-btn:active {
+  box-shadow: 0 0 0 var(--card-lift, #d8cfbb);
+  transform: translateY(1px);
+}
+
+/* Call is the primary action on a follow-up: solid green. */
+.today-btn-call {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fffdf7;
+}
+
+.today-btn-ghost {
+  background: transparent;
+}
+
+.today-nophone {
+  font-size: 12px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+/* All-caught-up empty state: calm, with one forward action. */
+.today-clear {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 0 4px;
+}
+.today-clear-line {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.today-clear-sub {
+  font-size: 13px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.today-clear-btn {
+  margin-top: 6px;
+}
+
+/* On very narrow screens, let the action buttons drop under the text so nothing
+   overflows at 360px. */
+@media (max-width: 400px) {
+  .today-item {
+    flex-wrap: wrap;
+  }
+  .today-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* ---------- Workflow strip (the quiet business-loop map) ----------
+   Places > Quote > Clients > Coins > Money, each a tiny label + caption that
+   links to its tab. Subtle, small, horizontal; scrolls rather than wraps if a
+   phone is genuinely narrow. */
+.flow-strip {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  padding: 4px 2px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.flow-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.flow-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  flex: 1 1 0;
+  min-width: 52px;
+  min-height: 44px;
+  justify-content: center;
+  padding: 6px 4px;
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--ink);
+}
+.flow-step:active {
+  background: rgba(63, 138, 79, 0.10);
+}
+
+.flow-step-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.flow-step-cap {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.flow-arrow {
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+  font-size: 16px;
+  flex: 0 0 auto;
 }

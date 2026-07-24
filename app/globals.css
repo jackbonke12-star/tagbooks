@@ -1,9 +1,9 @@
 :root {
   /* Paper ledger palette. Token NAMES preserved; values remapped to paper. */
-  --bg: #f6f1e7;        /* warm paper */
-  --panel: #fbf7ee;     /* lighter paper card */
-  --panel2: #efe8d7;    /* tinted paper (inputs, fills) */
-  --line: #c9bfa6;      /* faint ink rule */
+  --bg: #e7dcc4;        /* beige paper */
+  --panel: #f1e9d6;     /* lighter beige card */
+  --panel2: #ddd0b4;    /* tinted beige (inputs, fills) */
+  --line: #c6ba9a;      /* faint ink rule */
   --ink: #1c1a15;       /* near-black ink */
   --muted: #8a8371;     /* faded ink */
   --green: #2f5d3a;     /* deep stamp green */

@@ -730,6 +730,11 @@ function SaleForm({ editing, onSaved, onCancelEdit }) {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Tracks the last amount we auto-filled from a product's default price. Lets us
+  // safely re-fill on product change WITHOUT clobbering a number Jack typed by
+  // hand: we only overwrite when amount is empty or still equals this default.
+  const autoAmountRef = useRef(String(PRODUCTS[0].price));
+
   // Client typeahead: what's typed in the search box + whether the dropdown is
   // open. The search box only picks a client; the editable "Client name" field
   // below is still the source of truth for the saved name.
@@ -753,6 +758,19 @@ function SaleForm({ editing, onSaved, onCancelEdit }) {
       active = false;
     };
   }, []);
+
+  // Default a fresh sale's "Closed by" to the last person who closed one.
+  // SSR-safe: read localStorage in a mount effect, never during render. Only
+  // applies to new entries (edit mode loads the row's real value below).
+  useEffect(() => {
+    if (editing) return;
+    try {
+      const last = localStorage.getItem('tagbooks-last-closed-by');
+      if (last === 'jack' || last === 'jackson') setClosedBy(last);
+    } catch {
+      /* localStorage unavailable */
+    }
+  }, [editing]);
 
   // Populate from the row when entering edit mode.
   useEffect(() => {
@@ -829,15 +847,39 @@ function SaleForm({ editing, onSaved, onCancelEdit }) {
     ? clients.find((x) => x.id === clientId)
     : null;
 
+  // Distinct business names for the client-name datalist (repeat-customer
+  // autocomplete). Reuses the clients already loaded above — no extra query.
+  const clientNameOptions = useMemo(() => {
+    const seen = new Set();
+    const out = [];
+    for (const c of clients) {
+      const name = (c.business_name || '').trim();
+      if (name && !seen.has(name)) {
+        seen.add(name);
+        out.push(name);
+      }
+    }
+    return out;
+  }, [clients]);
+
   function onProductChange(value) {
     setProduct(value);
     const p = productByValue(value);
     if (!p) return;
-    // "Other" leaves amount empty for custom entry.
-    if (p.value === 'other') {
-      setAmount('');
-    } else if (p.price !== null && p.price !== undefined) {
-      setAmount(String(p.price));
+    // Autofill the amount from the product's default price, but NEVER overwrite a
+    // number Jack typed himself: only fill when the field is empty or still holds
+    // the price we last auto-filled. "Other" (no price) leaves the amount alone.
+    const canAutofill =
+      amount === '' || amount === autoAmountRef.current;
+    if (canAutofill) {
+      if (p.value === 'other') {
+        setAmount('');
+        autoAmountRef.current = '';
+      } else if (p.price !== null && p.price !== undefined) {
+        const next = String(p.price);
+        setAmount(next);
+        autoAmountRef.current = next;
+      }
     }
     // Auto-set recurring when the product is recurring; still user-overridable.
     setType(p.recurring ? 'recurring' : 'one_time');
@@ -907,6 +949,13 @@ function SaleForm({ editing, onSaved, onCancelEdit }) {
       });
     }
 
+    // Remember who closed this so the next new sale defaults to them.
+    try {
+      localStorage.setItem('tagbooks-last-closed-by', closedBy);
+    } catch {
+      /* localStorage unavailable */
+    }
+
     if (isEdit) {
       onSaved();
     } else {
@@ -915,6 +964,7 @@ function SaleForm({ editing, onSaved, onCancelEdit }) {
       setClientId('');
       setProduct('basic_kit');
       setAmount(String(PRODUCTS[0].price));
+      autoAmountRef.current = String(PRODUCTS[0].price);
       setType('one_time');
       setNotes('');
       onSaved();
@@ -1001,8 +1051,15 @@ function SaleForm({ editing, onSaved, onCancelEdit }) {
           className="input"
           value={clientName}
           placeholder="Business name"
+          list="sale-client-names"
+          autoComplete="off"
           onChange={(e) => setClientName(e.target.value)}
         />
+        <datalist id="sale-client-names">
+          {clientNameOptions.map((name) => (
+            <option key={name} value={name} />
+          ))}
+        </datalist>
       </div>
 
       <div className="grid2">
@@ -1124,7 +1181,54 @@ function ExpenseForm({ editing, onSaved, onCancelEdit }) {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Distinct vendors already used, for the "Where bought" datalist.
+  const [vendorOptions, setVendorOptions] = useState([]);
+
   const isEdit = !!editing;
+
+  // Default a fresh expense's "Paid by" + "Category" to the last ones used.
+  // SSR-safe: read localStorage in a mount effect, never during render. Skipped
+  // in edit mode (the row's real values load below).
+  useEffect(() => {
+    if (editing) return;
+    try {
+      const lastPaid = localStorage.getItem('tagbooks-last-paid-by');
+      if (lastPaid === 'jack' || lastPaid === 'jackson') setPaidBy(lastPaid);
+      const lastCat = localStorage.getItem('tagbooks-last-expense-category');
+      if (lastCat && CATEGORIES.some((c) => c.value === lastCat)) {
+        setCategory(lastCat);
+      }
+    } catch {
+      /* localStorage unavailable */
+    }
+  }, [editing]);
+
+  // Load distinct vendors from past expenses once, for repeat-vendor
+  // autocomplete. One lightweight query; no realtime needed.
+  useEffect(() => {
+    let active = true;
+    supabase
+      .from('expenses')
+      .select('vendor')
+      .not('vendor', 'is', null)
+      .then(({ data }) => {
+        if (!active) return;
+        const seen = new Set();
+        const out = [];
+        for (const r of data || []) {
+          const v = (r.vendor || '').trim();
+          if (v && !seen.has(v)) {
+            seen.add(v);
+            out.push(v);
+          }
+        }
+        out.sort((a, b) => a.localeCompare(b));
+        setVendorOptions(out);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (editing) {
@@ -1193,11 +1297,27 @@ function ExpenseForm({ editing, onSaved, onCancelEdit }) {
       return;
     }
 
+    // Remember paid-by + category so the next new expense defaults to them.
+    try {
+      localStorage.setItem('tagbooks-last-paid-by', paidBy);
+      localStorage.setItem('tagbooks-last-expense-category', category);
+    } catch {
+      /* localStorage unavailable */
+    }
+
+    // Fold a freshly-typed vendor into the autocomplete list right away.
+    const v = vendor.trim();
+    if (v && !vendorOptions.includes(v)) {
+      setVendorOptions((prev) =>
+        [...prev, v].sort((a, b) => a.localeCompare(b))
+      );
+    }
+
     if (isEdit) {
       onSaved();
     } else {
-      // Keep date + paid_by sticky for rapid entry.
-      setCategory(CATEGORIES[0].value);
+      // Keep date + paid_by + category sticky for rapid entry.
+      setCategory(category);
       setAmount('');
       setVendor('');
       setNotes('');
@@ -1280,8 +1400,15 @@ function ExpenseForm({ editing, onSaved, onCancelEdit }) {
           className="input"
           value={vendor}
           placeholder="e.g. Amazon, Staples (optional)"
+          list="expense-vendors"
+          autoComplete="off"
           onChange={(e) => setVendor(e.target.value)}
         />
+        <datalist id="expense-vendors">
+          {vendorOptions.map((v) => (
+            <option key={v} value={v} />
+          ))}
+        </datalist>
       </div>
 
       <div className="field">

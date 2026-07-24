@@ -11,6 +11,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useRealtime } from '../../lib/realtime';
 import { money, localToday } from '../../lib/catalog';
+import TabTip from '../../components/TabTip';
 
 const GST_RATE = 0.05; // Alberta GST
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -335,6 +336,11 @@ export default function QuotePage() {
           Four steps: pick the customer, add items, check the total, then send it.
         </p>
       </div>
+
+      <TabTip id="quote">
+        Four steps: pick the customer, add items, check the total, then Text or
+        Print it — saving schedules a follow-up automatically.
+      </TabTip>
 
       {loadError ? <div className="form-error">{loadError}</div> : null}
 

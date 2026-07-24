@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useRealtime } from '../../lib/realtime';
 import { stageForProspect } from '../../lib/catalog';
+import TabTip from '../../components/TabTip';
 
 // High-review target business types (datalist + quick-fill chips).
 const BUSINESS_TYPES = [
@@ -500,6 +501,12 @@ export default function PlacesPage() {
           any row to jump into a prefilled quote.
         </p>
       </div>
+
+      <TabTip id="places">
+        Places are businesses to pitch — tap a row&apos;s status stamp to advance
+        it, set a follow-up date to get a reminder, and hit the green Quote button
+        to price one on the spot.
+      </TabTip>
 
       {/* Collapsed by default: a single compact toggle stands in for the form.
           Opens on tap, or whenever a row is being edited. */}

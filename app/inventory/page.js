@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useRealtime } from '../../lib/realtime';
 import { ITEMS, itemLabel, shortDate, localToday } from '../../lib/catalog';
+import TabTip from '../../components/TabTip';
 
 const STATUS_LABEL = { waiting: 'Waiting', printing: 'Printing', done: 'Done' };
 const NEXT_STATUS = { waiting: 'printing', printing: 'done', done: 'done' };
@@ -208,6 +209,11 @@ export default function InventoryPage() {
           Track stock on hand, incoming orders, and the print queue.
         </p>
       </div>
+
+      <TabTip id="inventory">
+        This is your stock on hand plus incoming orders from the Money tab — tap
+        &quot;Mark received&quot; on an order when it arrives to add it to stock.
+      </TabTip>
 
       {loadError ? <div className="form-error">{loadError}</div> : null}
 

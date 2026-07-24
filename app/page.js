@@ -13,6 +13,7 @@ import {
   shortDate,
   stageLabel,
   itemLabel,
+  ITEMS,
 } from '../lib/catalog';
 import EntryRow from '../components/EntryRow';
 
@@ -22,6 +23,23 @@ function telHref(phone) {
   if (!digits) return null;
   return `tel:+1${digits}`;
 }
+
+// Deep link to the Quote builder, prefilled with a business name + phone.
+function quoteHref(name, phone) {
+  const params = new URLSearchParams();
+  params.set('name', name || '');
+  if (phone) params.set('phone', phone);
+  return `/quote?${params.toString()}`;
+}
+
+// Reorder URL for an inventory item value, from the shared catalog.
+function reorderUrlFor(value) {
+  const it = ITEMS.find((x) => x.value === value);
+  return it ? it.reorderUrl : '';
+}
+
+// Low-stock thresholds, one per item value. Below the threshold = reorder.
+const LOW_STOCK = { cards: 20, filament_rolls: 1, stickers: 20 };
 
 const GOAL = 10000;
 
@@ -82,6 +100,9 @@ export default function DashboardPage() {
   const [expenses, setExpenses] = useState([]);
   const [feed, setFeed] = useState([]);
   const [followups, setFollowups] = useState([]);
+  const [prospectFollowups, setProspectFollowups] = useState([]);
+  const [inventory, setInventory] = useState([]);
+  const [toVisitCount, setToVisitCount] = useState(0);
   const [recurringActive, setRecurringActive] = useState([]);
   const [printWaiting, setPrintWaiting] = useState([]);
 
@@ -104,6 +125,9 @@ export default function DashboardPage() {
         feedSalesRes,
         feedExpensesRes,
         followupsRes,
+        prospectFollowupsRes,
+        toVisitRes,
+        inventoryRes,
         recurringRes,
         printWaitingRes,
       ] = await Promise.all([
@@ -137,6 +161,22 @@ export default function DashboardPage() {
             .not('next_followup', 'is', null)
             .lte('next_followup', today)
             .order('next_followup', { ascending: true }),
+          // Prospects (Places leads) whose follow-up is due today or overdue,
+          // still in the funnel (not won, not skipped).
+          supabase
+            .from('prospects')
+            .select('*')
+            .not('followup_date', 'is', null)
+            .lte('followup_date', today)
+            .not('status', 'in', '(won,skip)')
+            .order('followup_date', { ascending: true }),
+          // Count of prospects still queued to visit (the scouting nudge).
+          supabase
+            .from('prospects')
+            .select('id', { count: 'exact', head: true })
+            .eq('status', 'to_visit'),
+          // On-hand stock, to flag any item that's running low.
+          supabase.from('inventory').select('*'),
           // Active recurring plans for the MRR card.
           supabase.from('recurring').select('*').eq('active', true),
           // Waiting print jobs for the mini list.
@@ -153,6 +193,9 @@ export default function DashboardPage() {
         feedSalesRes.error ||
         feedExpensesRes.error ||
         followupsRes.error ||
+        prospectFollowupsRes.error ||
+        toVisitRes.error ||
+        inventoryRes.error ||
         recurringRes.error ||
         printWaitingRes.error;
       if (firstErr) {
@@ -164,6 +207,9 @@ export default function DashboardPage() {
       setSales(salesRes.data || []);
       setExpenses(expensesRes.data || []);
       setFollowups(followupsRes.data || []);
+      setProspectFollowups(prospectFollowupsRes.data || []);
+      setInventory(inventoryRes.data || []);
+      setToVisitCount(toVisitRes.count || 0);
       setRecurringActive(recurringRes.data || []);
       setPrintWaiting(printWaitingRes.data || []);
 
@@ -183,7 +229,15 @@ export default function DashboardPage() {
 
   // Live updates: reload when any dashboard table changes on any device.
   useRealtime(
-    ['sales', 'expenses', 'clients', 'recurring', 'print_queue'],
+    [
+      'sales',
+      'expenses',
+      'clients',
+      'prospects',
+      'inventory',
+      'recurring',
+      'print_queue',
+    ],
     load
   );
 
@@ -253,6 +307,79 @@ export default function DashboardPage() {
     return { jack, jackson, line };
   }, [expenses]);
 
+  // ---- TODAY action center ----
+  // One prioritized list of real next-actions, built from live data. Each item
+  // carries a `rank` (0 overdue, 1 due today, 2 nudge) so the list sorts into
+  // "handle this first" order. Dates are LOCAL strings, compared as strings.
+  const today = localToday();
+  const todayItems = useMemo(() => {
+    const items = [];
+
+    // CLIENT follow-ups (already filtered to due/overdue in the query).
+    for (const c of followups) {
+      const overdue = c.next_followup < today;
+      items.push({
+        key: `client-${c.id}`,
+        kind: 'followup',
+        rank: overdue ? 0 : 1,
+        overdue,
+        name: c.business_name || 'Client',
+        stage: c.stage,
+        due: c.next_followup,
+        phone: c.phone || '',
+        tel: telHref(c.phone),
+        quote: quoteHref(c.business_name, c.phone),
+        clientHref: `/clients?q=${encodeURIComponent(c.business_name || '')}`,
+      });
+    }
+
+    // PROSPECT follow-ups (Places leads due/overdue, still in the funnel).
+    for (const p of prospectFollowups) {
+      const overdue = p.followup_date < today;
+      items.push({
+        key: `prospect-${p.id}`,
+        kind: 'prospect',
+        rank: overdue ? 0 : 1,
+        overdue,
+        name: p.name || 'Prospect',
+        due: p.followup_date,
+        phone: p.phone || '',
+        tel: telHref(p.phone),
+        quote: quoteHref(p.name, p.phone),
+      });
+    }
+
+    // LOW STOCK — one item per inventory row below its threshold.
+    for (const row of inventory) {
+      const threshold = LOW_STOCK[row.item];
+      if (threshold == null) continue;
+      const qty = Number(row.quantity || 0);
+      if (qty >= threshold) continue;
+      items.push({
+        key: `stock-${row.item}`,
+        kind: 'stock',
+        rank: 0, // out/low stock blocks fulfilment — treat as urgent.
+        name: itemLabel(row.item),
+        qty,
+        reorderUrl: reorderUrlFor(row.item),
+      });
+    }
+
+    // Gentle scouting nudge: prospects still queued to visit.
+    if (toVisitCount > 0) {
+      items.push({
+        key: 'to-visit',
+        kind: 'visit',
+        rank: 2,
+        count: toVisitCount,
+      });
+    }
+
+    // Overdue first, then due-today, then nudges. Stable within a rank.
+    items.sort((a, b) => a.rank - b.rank);
+    return items;
+  }, [followups, prospectFollowups, inventory, toVisitCount, today]);
+
   const label = `${monthName(monthIndex).toUpperCase()} GOAL`;
 
   if (loading) {
@@ -278,56 +405,6 @@ export default function DashboardPage() {
       </div>
 
       {error ? <div className="form-error">{error}</div> : null}
-
-      {/* FOLLOW-UPS DUE */}
-      {followups.length > 0 ? (
-        <div className="card">
-          <div className="card-label">Follow-ups due</div>
-          <div className="card-hint muted">Tap a number to call.</div>
-          <div className="followup-list">
-            {followups.map((client) => {
-              const tel = telHref(client.phone);
-              return (
-                <div className="list-item followup-row" key={client.id}>
-                  <div className="followup-main">
-                    <Link
-                      className="followup-name followup-name-link"
-                      href={`/clients?q=${encodeURIComponent(
-                        client.business_name || ''
-                      )}`}
-                    >
-                      {client.business_name}
-                    </Link>
-                    <span className={`chip chip-${client.stage}`}>
-                      {stageLabel(client.stage)}
-                    </span>
-                  </div>
-                  <div className="followup-meta">
-                    <span className="red followup-date">
-                      Due {shortDate(client.next_followup)}
-                    </span>
-                    {client.phone ? (
-                      tel ? (
-                        <a
-                          className="followup-tel green"
-                          href={tel}
-                          aria-label={`Call ${client.business_name}`}
-                        >
-                          Call {client.phone}
-                        </a>
-                      ) : (
-                        <span className="muted">{client.phone}</span>
-                      )
-                    ) : (
-                      <span className="muted followup-nophone">No number</span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
 
       {/* HERO — the centerpiece: the month's revenue against the $10k goal. */}
       <div className="card goal-hero">
@@ -378,6 +455,154 @@ export default function DashboardPage() {
             </>
           )}
         </div>
+      </div>
+
+      {/* TODAY — the action center. One prioritized list of real next-actions,
+          each with a one-tap action. Overdue first, then due today, then the
+          scouting nudge. When nothing is due, a calm all-caught-up state. */}
+      <div className="card today-card">
+        <div className="today-head">
+          <div className="card-label">
+            Today
+            {todayItems.length > 0
+              ? ` — ${todayItems.length} thing${
+                  todayItems.length === 1 ? '' : 's'
+                } need${todayItems.length === 1 ? 's' : ''} you`
+              : ''}
+          </div>
+        </div>
+
+        {todayItems.length === 0 ? (
+          <div className="today-clear">
+            <div className="today-clear-line">You&rsquo;re all caught up.</div>
+            <div className="muted today-clear-sub">
+              No follow-ups due, stock looks good. Go find the next one.
+            </div>
+            <Link className="btn btn-primary today-clear-btn" href="/places">
+              Find prospects
+            </Link>
+          </div>
+        ) : (
+          <div className="today-list">
+            {todayItems.map((it) => {
+              // FOLLOW-UP (client) and PROSPECT share the call + quote layout.
+              if (it.kind === 'followup' || it.kind === 'prospect') {
+                return (
+                  <div className="today-item" key={it.key}>
+                    <div className="today-item-main">
+                      <div className="today-item-top">
+                        {it.kind === 'followup' ? (
+                          <Link
+                            className="today-name today-name-link"
+                            href={it.clientHref}
+                          >
+                            {it.name}
+                          </Link>
+                        ) : (
+                          <span className="today-name">{it.name}</span>
+                        )}
+                        {it.kind === 'followup' && it.stage ? (
+                          <span className={`chip chip-${it.stage}`}>
+                            {stageLabel(it.stage)}
+                          </span>
+                        ) : (
+                          <span className="today-tag">Prospect</span>
+                        )}
+                      </div>
+                      <div
+                        className={`today-due ${
+                          it.overdue ? 'red' : 'muted'
+                        }`}
+                      >
+                        {it.overdue ? 'Overdue' : 'Due today'} &middot;{' '}
+                        {shortDate(it.due)}
+                      </div>
+                    </div>
+                    <div className="today-actions">
+                      {it.tel ? (
+                        <a
+                          className="today-btn today-btn-call"
+                          href={it.tel}
+                          aria-label={`Call ${it.name}`}
+                        >
+                          Call
+                        </a>
+                      ) : (
+                        <span
+                          className="today-nophone muted"
+                          title="No phone number on file"
+                        >
+                          No number
+                        </span>
+                      )}
+                      <Link className="today-btn today-btn-quote" href={it.quote}>
+                        Quote
+                      </Link>
+                    </div>
+                  </div>
+                );
+              }
+
+              // LOW STOCK — reorder in a new tab.
+              if (it.kind === 'stock') {
+                return (
+                  <div className="today-item" key={it.key}>
+                    <div className="today-item-main">
+                      <div className="today-item-top">
+                        <span className="today-name">{it.name}</span>
+                        <span className="today-tag today-tag-stock">
+                          Low stock
+                        </span>
+                      </div>
+                      <div className="today-due red">
+                        {it.qty} left &middot; time to reorder
+                      </div>
+                    </div>
+                    <div className="today-actions">
+                      {it.reorderUrl ? (
+                        <a
+                          className="today-btn today-btn-quote"
+                          href={it.reorderUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Reorder
+                        </a>
+                      ) : (
+                        <Link
+                          className="today-btn today-btn-quote"
+                          href="/inventory"
+                        >
+                          Inventory
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+
+              // SCOUTING NUDGE — prospects still queued to visit.
+              return (
+                <Link className="today-item today-item-link" key={it.key} href="/places">
+                  <div className="today-item-main">
+                    <div className="today-item-top">
+                      <span className="today-name">
+                        {it.count} place{it.count === 1 ? '' : 's'} to visit
+                      </span>
+                      <span className="today-tag today-tag-visit">Nudge</span>
+                    </div>
+                    <div className="today-due muted">
+                      Go scout leads on the map
+                    </div>
+                  </div>
+                  <div className="today-actions">
+                    <span className="today-btn today-btn-ghost">Open</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* STAT TILES - compact 2x2 grid on phones, 4-across on wide. Each tile
@@ -449,6 +674,36 @@ export default function DashboardPage() {
           Open pitch screen
         </Link>
       </div>
+
+      {/* WORKFLOW STRIP — a quiet map of the business loop. Each step links to
+          its tab, so the whole flow (scout -> price -> close -> make -> track)
+          is one glanceable, tappable row. Small on purpose. */}
+      <nav className="flow-strip" aria-label="How TagBooks works">
+        <Link className="flow-step" href="/places">
+          <span className="flow-step-label">Places</span>
+          <span className="flow-step-cap muted">scout</span>
+        </Link>
+        <span className="flow-arrow" aria-hidden="true">&rsaquo;</span>
+        <Link className="flow-step" href="/quote">
+          <span className="flow-step-label">Quote</span>
+          <span className="flow-step-cap muted">price</span>
+        </Link>
+        <span className="flow-arrow" aria-hidden="true">&rsaquo;</span>
+        <Link className="flow-step" href="/clients">
+          <span className="flow-step-label">Clients</span>
+          <span className="flow-step-cap muted">close</span>
+        </Link>
+        <span className="flow-arrow" aria-hidden="true">&rsaquo;</span>
+        <Link className="flow-step" href="/coins">
+          <span className="flow-step-label">Coins</span>
+          <span className="flow-step-cap muted">make</span>
+        </Link>
+        <span className="flow-arrow" aria-hidden="true">&rsaquo;</span>
+        <Link className="flow-step" href="/money">
+          <span className="flow-step-label">Money</span>
+          <span className="flow-step-cap muted">track</span>
+        </Link>
+      </nav>
 
       {/* LATEST ACTIVITY */}
       <div className="card">
