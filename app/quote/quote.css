@@ -1,0 +1,367 @@
+/* Quote builder. Cards/inputs/buttons come from globals.css; this styles the
+   line-item builder, totals, actions, recent list, and the print/PDF layout.
+   Token-based so light + dark both read correctly. */
+
+.quote {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---------- Add-product chips ---------- */
+.q-add-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.q-add-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  min-height: 40px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--panel2);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.q-add-chip:active {
+  transform: translateY(1px);
+}
+.q-add-price {
+  color: var(--green);
+  font-variant-numeric: tabular-nums;
+}
+.q-add-custom {
+  border-style: dashed;
+  color: var(--muted);
+}
+
+/* ---------- Line items ---------- */
+.q-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.q-line {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.q-line:last-child {
+  border-bottom: 0;
+}
+.q-line-name {
+  width: 100%;
+  min-height: 40px;
+  padding: 6px 10px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 700;
+}
+.q-line-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* quantity stepper */
+.q-qty {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.q-qty button {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: var(--panel2);
+  color: var(--ink);
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.q-qty button:active {
+  background: var(--line);
+}
+.q-qty input {
+  width: 48px;
+  height: 40px;
+  border: 0;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 700;
+  -moz-appearance: textfield;
+}
+.q-qty input::-webkit-outer-spin-button,
+.q-qty input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* price input */
+.q-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  padding-left: 8px;
+  background: var(--panel);
+}
+.q-price-sign {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-weight: 700;
+}
+.q-price input {
+  width: 74px;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 700;
+  -moz-appearance: textfield;
+}
+.q-price input::-webkit-outer-spin-button,
+.q-price input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.q-line-total {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.q-line-remove {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--red);
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ---------- Totals ---------- */
+.q-gst {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+.q-gst input {
+  width: 18px;
+  height: 18px;
+}
+.q-total-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid var(--line);
+  margin-bottom: 12px;
+}
+.q-total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.q-total-row span:first-child {
+  color: var(--muted);
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  align-self: center;
+}
+.q-grand {
+  border-bottom: 0;
+  border-top: 3px double var(--rule-strong);
+  font-size: 20px;
+  font-weight: 700;
+}
+.q-grand span:first-child {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+/* ---------- Actions ---------- */
+.q-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.q-actions .btn {
+  text-decoration: none;
+}
+.q-btn-off {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.q-saved {
+  color: var(--green);
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* ---------- Recent quotes ---------- */
+.q-recent {
+  display: flex;
+  flex-direction: column;
+}
+.q-recent-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.q-recent-item:last-child {
+  border-bottom: 0;
+}
+.q-recent-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.q-recent-name {
+  font-weight: 700;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.q-recent-sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+.q-recent-total {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--green);
+  white-space: nowrap;
+}
+
+/* ---------- Print / PDF layout ---------- */
+.quote-print {
+  display: none;
+}
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  .quote-print,
+  .quote-print * {
+    visibility: visible !important;
+  }
+  .quote-print {
+    display: block !important;
+    position: absolute;
+    inset: 0;
+    padding: 28px;
+    color: #111;
+    background: #fff;
+    font-family: 'Courier New', monospace;
+  }
+  .qp-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 2px solid #111;
+    padding-bottom: 8px;
+  }
+  .qp-brand {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .qp-date {
+    font-size: 14px;
+  }
+  .qp-for {
+    margin: 16px 0;
+    font-size: 15px;
+  }
+  .qp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .qp-table th,
+  .qp-table td {
+    text-align: left;
+    padding: 6px 4px;
+    border-bottom: 1px solid #bbb;
+  }
+  .qp-table th:nth-child(2),
+  .qp-table td:nth-child(2),
+  .qp-table th:nth-child(3),
+  .qp-table td:nth-child(3),
+  .qp-table th:nth-child(4),
+  .qp-table td:nth-child(4) {
+    text-align: right;
+    white-space: nowrap;
+  }
+  .qp-totals {
+    margin-top: 12px;
+    margin-left: auto;
+    width: 240px;
+  }
+  .qp-totals > div {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+  }
+  .qp-grand {
+    border-top: 2px solid #111;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .qp-notes {
+    margin-top: 18px;
+    font-size: 13px;
+    white-space: pre-wrap;
+  }
+  .qp-foot {
+    margin-top: 24px;
+    font-size: 13px;
+  }
+}

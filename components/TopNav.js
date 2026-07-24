@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 
 // Pages that live under the "More" menu (occasional / secondary use).
 const MORE_ITEMS = [
+  { href: '/quote', label: 'Quote' },
   { href: '/places', label: 'Places' },
   { href: '/products', label: 'Products' },
   { href: '/models', label: 'Models' },
