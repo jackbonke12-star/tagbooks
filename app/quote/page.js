@@ -29,6 +29,23 @@ function fmtDate(iso) {
   return `${MONTHS[m - 1]} ${d}`;
 }
 
+// Shift a 'YYYY-MM-DD' by n days using local date math.
+function addDays(ymd, n) {
+  const [y, m, d] = String(ymd).split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + n);
+  const mm = String(dt.getMonth() + 1).padStart(2, '0');
+  const dd = String(dt.getDate()).padStart(2, '0');
+  return `${dt.getFullYear()}-${mm}-${dd}`;
+}
+
+const FOLLOWUP_OPTIONS = [
+  { d: 2, l: '2 days' },
+  { d: 3, l: '3 days' },
+  { d: 7, l: '1 week' },
+  { d: 14, l: '2 weeks' },
+];
+
 const lineAmount = (l) => (Number(l.qty) || 0) * (Number(l.price) || 0);
 
 export default function QuotePage() {
@@ -50,6 +67,9 @@ export default function QuotePage() {
   // A business handed in via ?name=... (e.g. from the Places tab), waiting to be
   // linked to a matching client once clients load.
   const [pending, setPending] = useState(null);
+  // Auto follow-up: after saving, schedule a callback so the lead isn't dropped.
+  const [followupOn, setFollowupOn] = useState(true);
+  const [followDays, setFollowDays] = useState(3);
 
   const load = useCallback(async () => {
     setLoadError('');
@@ -211,13 +231,52 @@ export default function QuotePage() {
       notes: notes.trim() || null,
       status: 'sent',
     });
-    setSaving(false);
     if (error) {
+      setSaving(false);
       setLoadError(error.message || 'Failed to save quote.');
       return;
     }
+
+    // Auto follow-up: land a callback in the queue so the lead isn't dropped.
+    // Linked client -> set clients.next_followup. Otherwise match a prospect by
+    // name (or create one) and set prospects.followup_date + mark it pitched.
+    if (followupOn) {
+      const fu = addDays(today, followDays);
+      try {
+        if (clientId) {
+          await supabase
+            .from('clients')
+            .update({ next_followup: fu })
+            .eq('id', clientId);
+        } else {
+          const { data: pros } = await supabase
+            .from('prospects')
+            .select('id')
+            .ilike('name', businessName.trim())
+            .limit(1);
+          if (pros && pros.length) {
+            await supabase
+              .from('prospects')
+              .update({ followup_date: fu, status: 'pitched' })
+              .eq('id', pros[0].id);
+          } else {
+            await supabase.from('prospects').insert({
+              name: businessName.trim(),
+              phone: phone.trim() || null,
+              status: 'pitched',
+              priority: 'high',
+              followup_date: fu,
+            });
+          }
+        }
+      } catch {
+        // Best-effort — the quote already saved; a failed follow-up isn't fatal.
+      }
+    }
+
+    setSaving(false);
     setSavedFlash(true);
-    setTimeout(() => setSavedFlash(false), 2000);
+    setTimeout(() => setSavedFlash(false), 2500);
     load();
   }, [
     canSave,
@@ -231,6 +290,9 @@ export default function QuotePage() {
     total,
     gst,
     notes,
+    followupOn,
+    followDays,
+    today,
     load,
   ]);
 
@@ -469,6 +531,29 @@ export default function QuotePage() {
           />
         </div>
 
+        <label className="q-followup">
+          <input
+            type="checkbox"
+            checked={followupOn}
+            onChange={(e) => setFollowupOn(e.target.checked)}
+          />
+          Schedule a follow-up when saved
+        </label>
+        {followupOn ? (
+          <div className="seg q-followup-seg">
+            {FOLLOWUP_OPTIONS.map((o) => (
+              <button
+                key={o.d}
+                type="button"
+                className={followDays === o.d ? 'on' : ''}
+                onClick={() => setFollowDays(o.d)}
+              >
+                {o.l}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
         <div className="q-actions">
           <button
             type="button"
@@ -493,7 +578,11 @@ export default function QuotePage() {
           <button type="button" className="btn btn-ghost" onClick={resetForm}>
             Clear
           </button>
-          {savedFlash ? <span className="q-saved">Saved to Clients</span> : null}
+          {savedFlash ? (
+            <span className="q-saved">
+              Saved{followupOn ? ` · follow-up in ${followDays}d` : ''}
+            </span>
+          ) : null}
         </div>
       </div>
 

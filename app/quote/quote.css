@@ -365,3 +365,23 @@
     font-size: 13px;
   }
 }
+
+/* Auto follow-up scheduler in the save area. */
+.q-followup {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+.q-followup input {
+  width: 18px;
+  height: 18px;
+}
+.q-followup-seg {
+  margin-bottom: 12px;
+  max-width: 340px;
+}
