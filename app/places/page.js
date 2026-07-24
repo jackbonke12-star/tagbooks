@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useRealtime } from '../../lib/realtime';
+import { stageForProspect } from '../../lib/catalog';
 
 // High-review target business types (datalist + quick-fill chips).
 const BUSINESS_TYPES = [
@@ -318,7 +319,10 @@ export default function PlacesPage() {
         phone: place.phone || null,
         address: place.address || null,
         google_review_url: place.google_review_url || null,
-        stage: 'pitched',
+        // Unified conversion: stage mapped from the prospect's status, and its
+        // follow-up date carried over so the callback isn't lost.
+        stage: stageForProspect(place.status),
+        next_followup: place.followup_date || null,
         notes: clientNotes,
       });
       if (insertError) {

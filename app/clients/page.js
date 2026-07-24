@@ -5,7 +5,13 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useRealtime } from '../../lib/realtime';
-import { STAGES, stageLabel, localToday, shortDate } from '../../lib/catalog';
+import {
+  STAGES,
+  stageLabel,
+  stageForProspect,
+  localToday,
+  shortDate,
+} from '../../lib/catalog';
 
 // Build a tel: href by stripping everything except digits, then add a
 // leading +1 for US dialing. Display keeps the phone exactly as entered.
@@ -335,6 +341,9 @@ function ClientForm({ editing, onSaved, onCancelEdit }) {
   const [placeSearch, setPlaceSearch] = useState('');
   const [placeResults, setPlaceResults] = useState([]);
   const [placesOpen, setPlacesOpen] = useState(false);
+  // The prospect this new client was converted from (if any). On save we mark
+  // it 'won' so the same business doesn't live in both pipelines.
+  const [sourceProspect, setSourceProspect] = useState(null);
 
   const isEdit = !!editing;
 
@@ -372,10 +381,14 @@ function ClientForm({ editing, onSaved, onCancelEdit }) {
   // Autofill the client fields from a picked prospect. business_type + city go
   // into notes only when notes is currently empty.
   function pickPlace(place) {
+    setSourceProspect(place);
     setBusinessName(place.name || '');
     setPhone(place.phone || '');
     setAddress(place.address || '');
     setGoogleReviewUrl(place.google_review_url || '');
+    // Same unified conversion rule as Places "Add as client".
+    setStage(stageForProspect(place.status));
+    if (place.followup_date) setNextFollowup(place.followup_date);
     if (!notes.trim()) {
       const summary = [place.business_type, place.city]
         .filter(Boolean)
@@ -410,6 +423,7 @@ function ClientForm({ editing, onSaved, onCancelEdit }) {
     setNextFollowup('');
     setGoogleReviewUrl('');
     setNotes('');
+    setSourceProspect(null);
   }
 
   async function submit(e) {
@@ -449,6 +463,14 @@ function ClientForm({ editing, onSaved, onCancelEdit }) {
     if (isEdit) {
       onSaved();
     } else {
+      // Dedupe: the converted prospect is now a client, so retire it from the
+      // active Places pipeline (best-effort — the client already saved).
+      if (sourceProspect) {
+        await supabase
+          .from('prospects')
+          .update({ status: 'won' })
+          .eq('id', sourceProspect.id);
+      }
       resetForm();
       onSaved();
     }
@@ -493,6 +515,20 @@ function ClientForm({ editing, onSaved, onCancelEdit }) {
                 );
               })}
             </div>
+          ) : null}
+          {sourceProspect ? (
+            <p className="place-pull-note muted">
+              Converting <strong>{sourceProspect.name}</strong> from Places — on
+              save it’s marked <strong>won</strong> and its follow-up carries
+              over.{' '}
+              <button
+                type="button"
+                className="place-pull-undo"
+                onClick={() => setSourceProspect(null)}
+              >
+                Not from Places
+              </button>
+            </p>
           ) : null}
         </div>
       ) : null}
