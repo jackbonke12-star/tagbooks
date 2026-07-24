@@ -4,7 +4,7 @@ import './inventory.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useRealtime } from '../../lib/realtime';
-import { ITEMS, itemLabel, shortDate } from '../../lib/catalog';
+import { ITEMS, itemLabel, shortDate, localToday } from '../../lib/catalog';
 
 const STATUS_LABEL = { waiting: 'Waiting', printing: 'Printing', done: 'Done' };
 const NEXT_STATUS = { waiting: 'printing', printing: 'done', done: 'done' };
@@ -12,20 +12,28 @@ const NEXT_STATUS = { waiting: 'printing', printing: 'done', done: 'done' };
 export default function InventoryPage() {
   const [inventory, setInventory] = useState([]);
   const [jobs, setJobs] = useState([]);
+  const [incoming, setIncoming] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
     setLoadError('');
-    const [invRes, jobsRes] = await Promise.all([
+    const [invRes, jobsRes, incomingRes] = await Promise.all([
       supabase.from('inventory').select('*').order('item', { ascending: true }),
       supabase
         .from('print_queue')
         .select('*')
         .order('created_at', { ascending: true }),
+      // Expenses flagged as stock orders that haven't been received yet.
+      supabase
+        .from('expenses')
+        .select('*')
+        .not('inv_item', 'is', null)
+        .eq('received', false)
+        .order('arrival_date', { ascending: true, nullsFirst: false }),
     ]);
-    const err = invRes.error || jobsRes.error;
+    const err = invRes.error || jobsRes.error || incomingRes.error;
     if (err) {
       setLoadError(err.message || 'Failed to load inventory.');
       setLoading(false);
@@ -33,6 +41,7 @@ export default function InventoryPage() {
     }
     setInventory(invRes.data || []);
     setJobs(jobsRes.data || []);
+    setIncoming(incomingRes.data || []);
     setLoading(false);
   }, []);
 
@@ -40,8 +49,43 @@ export default function InventoryPage() {
     load();
   }, [load]);
 
-  // Live updates: reload when inventory or print jobs change on any device.
-  useRealtime(['inventory', 'print_queue'], load);
+  // Live updates: reload when inventory, print jobs, or expenses change.
+  useRealtime(['inventory', 'print_queue', 'expenses'], load);
+
+  // Receive an incoming order: fold its quantity into on-hand stock (create the
+  // inventory row if it doesn't exist yet), then mark the expense received.
+  const receiveOrder = useCallback(
+    async (order) => {
+      const qty = Number(order.inv_qty || 0);
+      const existing = inventory.find((r) => r.item === order.inv_item);
+      let invErr;
+      if (existing) {
+        const next = Number(existing.quantity || 0) + qty;
+        ({ error: invErr } = await supabase
+          .from('inventory')
+          .update({ quantity: next })
+          .eq('id', existing.id));
+      } else {
+        ({ error: invErr } = await supabase
+          .from('inventory')
+          .insert({ item: order.inv_item, quantity: qty }));
+      }
+      if (invErr) {
+        setLoadError(invErr.message || 'Failed to add to stock.');
+        return;
+      }
+      const { error: expErr } = await supabase
+        .from('expenses')
+        .update({ received: true, received_date: localToday() })
+        .eq('id', order.id);
+      if (expErr) {
+        setLoadError(expErr.message || 'Failed to mark received.');
+        return;
+      }
+      load();
+    },
+    [inventory, load]
+  );
 
   const qtyOf = useCallback(
     (item) => {
@@ -183,6 +227,54 @@ export default function InventoryPage() {
           </div>
         )}
       </div>
+
+      {/* Incoming stock orders (from expenses flagged as orders) */}
+      {incoming.length > 0 ? (
+        <div className="card">
+          <div className="card-label">Incoming orders</div>
+          <div className="inv-incoming">
+            {incoming.map((order) => {
+              const arr = order.arrival_date;
+              const overdue = arr && arr < localToday();
+              const dueToday = arr && arr === localToday();
+              return (
+                <div className="inv-in-row" key={order.id}>
+                  <div className="inv-in-main">
+                    <span className="inv-in-name">{itemLabel(order.inv_item)}</span>
+                    <span className="inv-in-sub">
+                      +{Number(order.inv_qty || 0)}
+                      {order.vendor ? ` · ${order.vendor}` : ''}
+                    </span>
+                  </div>
+                  <div className="inv-in-right">
+                    <span
+                      className={
+                        'inv-in-eta ' +
+                        (overdue ? 'red' : dueToday ? 'green' : 'muted')
+                      }
+                    >
+                      {arr
+                        ? overdue
+                          ? `Due ${shortDate(arr)}`
+                          : dueToday
+                          ? 'Arrives today'
+                          : `Arrives ${shortDate(arr)}`
+                        : 'No date'}
+                    </span>
+                    <button
+                      type="button"
+                      className="btn btn-primary inv-in-recv"
+                      onClick={() => receiveOrder(order)}
+                    >
+                      Mark received
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
 
       {/* Print queue */}
       <div className="card">

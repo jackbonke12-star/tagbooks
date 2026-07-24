@@ -488,3 +488,31 @@
     font-size: 9px;
   }
 }
+
+/* Expense -> inventory order toggle + fields. */
+.exp-stock-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+}
+.exp-stock-toggle input {
+  width: 18px;
+  height: 18px;
+}
+.exp-stock-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border: 1px dashed var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--panel2);
+}
+.exp-stock-hint {
+  margin: 0;
+  font-size: 12px;
+}

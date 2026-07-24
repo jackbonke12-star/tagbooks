@@ -258,3 +258,50 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Incoming stock orders (from expenses). */
+.inv-incoming {
+  display: flex;
+  flex-direction: column;
+}
+.inv-in-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.inv-in-row:last-child {
+  border-bottom: 0;
+}
+.inv-in-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.inv-in-name {
+  font-weight: 700;
+  color: var(--ink);
+}
+.inv-in-sub {
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.inv-in-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.inv-in-eta {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.inv-in-recv {
+  white-space: nowrap;
+}

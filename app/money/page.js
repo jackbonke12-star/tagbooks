@@ -16,6 +16,7 @@ import {
   shortDate,
   isKit,
   needsLogoStand,
+  ITEMS,
 } from '../../lib/catalog';
 import MonthSwitcher from '../../components/MonthSwitcher';
 import EntryRow from '../../components/EntryRow';
@@ -1093,6 +1094,11 @@ function ExpenseForm({ editing, onSaved, onCancelEdit }) {
   const [paidBy, setPaidBy] = useState('jack');
   const [vendor, setVendor] = useState('');
   const [notes, setNotes] = useState('');
+  // Inventory order: when on, this purchase is stock we're expecting.
+  const [toStock, setToStock] = useState(false);
+  const [invItem, setInvItem] = useState(ITEMS[0].value);
+  const [invQty, setInvQty] = useState('');
+  const [arrivalDate, setArrivalDate] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -1110,6 +1116,14 @@ function ExpenseForm({ editing, onSaved, onCancelEdit }) {
       setPaidBy(editing.paid_by === 'jackson' ? 'jackson' : 'jack');
       setVendor(editing.vendor || '');
       setNotes(editing.notes || '');
+      setToStock(!!editing.inv_item);
+      setInvItem(editing.inv_item || ITEMS[0].value);
+      setInvQty(
+        editing.inv_qty === null || editing.inv_qty === undefined
+          ? ''
+          : String(editing.inv_qty)
+      );
+      setArrivalDate(editing.arrival_date || '');
       setError('');
     }
   }, [editing]);
@@ -1124,6 +1138,12 @@ function ExpenseForm({ editing, onSaved, onCancelEdit }) {
       return;
     }
 
+    const orderQty = Number(invQty);
+    if (toStock && (!Number.isFinite(orderQty) || orderQty <= 0)) {
+      setError('Enter how many units you ordered.');
+      return;
+    }
+
     setSaving(true);
     const payload = {
       date,
@@ -1132,6 +1152,10 @@ function ExpenseForm({ editing, onSaved, onCancelEdit }) {
       paid_by: paidBy,
       vendor: vendor.trim() ? vendor.trim() : null,
       notes: notes.trim() ? notes.trim() : null,
+      // Inventory order fields (null when this isn't a stock purchase).
+      inv_item: toStock ? invItem : null,
+      inv_qty: toStock ? orderQty : null,
+      arrival_date: toStock ? arrivalDate || null : null,
     };
 
     let res;
@@ -1155,6 +1179,10 @@ function ExpenseForm({ editing, onSaved, onCancelEdit }) {
       setAmount('');
       setVendor('');
       setNotes('');
+      setToStock(false);
+      setInvItem(ITEMS[0].value);
+      setInvQty('');
+      setArrivalDate('');
       onSaved();
     }
   }
@@ -1233,6 +1261,63 @@ function ExpenseForm({ editing, onSaved, onCancelEdit }) {
           onChange={(e) => setVendor(e.target.value)}
         />
       </div>
+
+      <div className="field">
+        <label className="exp-stock-toggle">
+          <input
+            type="checkbox"
+            checked={toStock}
+            onChange={(e) => setToStock(e.target.checked)}
+          />
+          This is an inventory order (stock coming in)
+        </label>
+      </div>
+
+      {toStock ? (
+        <div className="exp-stock-fields">
+          <div className="grid2">
+            <div className="field">
+              <label className="label">Item</label>
+              <select
+                className="select"
+                value={invItem}
+                onChange={(e) => setInvItem(e.target.value)}
+              >
+                {ITEMS.map((it) => (
+                  <option key={it.value} value={it.value}>
+                    {it.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label className="label">Quantity ordered</label>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                className="input"
+                value={invQty}
+                placeholder="e.g. 50"
+                onChange={(e) => setInvQty(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="field">
+            <label className="label">Expected arrival</label>
+            <input
+              type="date"
+              className="input"
+              value={arrivalDate}
+              onChange={(e) => setArrivalDate(e.target.value)}
+            />
+          </div>
+          <p className="exp-stock-hint muted">
+            Shows in Inventory as incoming. Mark it received there to add it to
+            stock.
+          </p>
+        </div>
+      ) : null}
 
       <div className="field">
         <label className="label">Notes</label>
