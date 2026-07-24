@@ -286,7 +286,7 @@ function ProductDetail({ product, images, onClose }) {
                 Add to a sale
               </Link>
               <p className="prod-cta-hint muted">
-                Opens Money to log this product as a sale for a client.
+                Opens the Money tab to log a sale.
               </p>
             </div>
           </div>

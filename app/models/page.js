@@ -294,14 +294,16 @@ function ModelDetail({ model, onClose }) {
                     Open design source
                   </a>
                 )}
-                <Link href="/printer" className="btn mdl-cta-alt">
-                  Send to printer
-                </Link>
+                {model.own ? (
+                  <Link href="/printer" className="btn mdl-cta-alt">
+                    Open Printer
+                  </Link>
+                ) : null}
               </div>
               <p className="mdl-actions-hint muted">
-                {model.download
-                  ? 'Download saves the STL file. Send to printer opens the Printer page to queue a run.'
-                  : 'Open source opens the maker’s page in a new tab to download the STL. Send to printer opens the Printer page to queue a run.'}
+                {model.own
+                  ? 'Download the STL, slice it in Bambu Studio, then print from the Printer tab.'
+                  : 'Open source opens the maker’s page in a new tab. Download the STL there, slice it in Bambu Studio, then print from the Printer tab.'}
               </p>
             </div>
           </div>

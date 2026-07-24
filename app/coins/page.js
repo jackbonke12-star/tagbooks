@@ -51,6 +51,16 @@ export default function CoinsPage() {
     load();
   }, [load]);
 
+  // Deep-link support: a `?q=` in the URL (set by a client's QR link on the
+  // Clients page) prefills the search so the linked business shows immediately.
+  // Read window.location.search directly to avoid the Suspense requirement that
+  // useSearchParams imposes on the build.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const q = new URLSearchParams(window.location.search).get('q');
+    if (q) setSearch(q);
+  }, []);
+
   // Live updates: new review links added on the Clients page appear here.
   useRealtime(['clients'], load);
 

@@ -369,6 +369,25 @@ button {
   color: var(--ink);
 }
 
+/* Grouped sections: a small muted subheader over each cluster of items so the
+   menu scans as labeled groups instead of one long list. */
+.topnav-menu-group + .topnav-menu-group {
+  margin-top: 4px;
+  border-top: 1px solid var(--line);
+  padding-top: 4px;
+}
+
+.topnav-menu-heading {
+  padding: 6px 14px 3px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 /* Phone tightening: keep everything on one row at 360-390px. */
 @media (max-width: 420px) {
   .topnav {

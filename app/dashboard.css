@@ -13,9 +13,13 @@
   .dash {
     gap: 12px;
   }
-  .dash > .card {
+  .dash > .card,
+  .dash > .card-link > .card {
     margin-bottom: 0;
     padding: 14px;
+  }
+  .dash > .card-link {
+    margin-bottom: 0;
   }
   .dash > .goal-hero {
     margin-bottom: 0;
@@ -170,6 +174,35 @@
   }
 }
 
+/* Each stat tile is wrapped in a Link that is now the grid cell. The wrapper
+   is a bare pass-through: no color, no underline, and it stretches so the tile
+   inside keeps its full size and constant height (no layout shift, animations
+   untouched — those live on .stat-grid, not the wrapper). */
+.stat-tile-link {
+  display: flex;
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+}
+.stat-tile-link > .stat-tile {
+  flex: 1;
+}
+.stat-tile-link:active > .stat-tile {
+  box-shadow: 0 1px 0 var(--card-lift, #d8cfbb),
+    inset 0 0 0 100px rgba(63, 138, 79, 0.06);
+}
+
+/* A card wrapped as a shortcut (e.g. print queue -> /inventory). Pure
+   pass-through so the card keeps its exact look; a faint press tint on tap. */
+.card-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+.card-link:active > .card {
+  box-shadow: inset 0 0 0 100px rgba(63, 138, 79, 0.05);
+}
+
 .stat-tile {
   background: var(--panel);
   border: 1px solid var(--rule-strong);
@@ -279,6 +312,24 @@
 .followup-name {
   font-weight: 600;
   color: var(--ink);
+}
+
+/* Business name doubles as a shortcut to that client (/clients?q=…). It keeps
+   the plain name look — no default link underline/color — and gets a padded,
+   finger-sized hit area (clears 44px with the surrounding row height). */
+.followup-name-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 4px 6px;
+  margin: -4px -6px;
+  border-radius: var(--radius);
+  color: var(--ink);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.followup-name-link:active {
+  background: rgba(63, 138, 79, 0.12);
 }
 
 .followup-meta {
@@ -434,6 +485,7 @@
   /* Stagger the top-level dashboard blocks in by a hair each. Small, capped set
      so nothing arrives late. */
   .dash > .card,
+  .dash > .card-link,
   .dash > .goal-hero,
   .dash > .stat-grid,
   .dash > .products-callout {

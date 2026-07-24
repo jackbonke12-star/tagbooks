@@ -29,6 +29,19 @@
   overflow-wrap: anywhere;
 }
 
+/* Named low item -> its reorder link. Same calm amber ink as the banner, just
+   underlined so it reads as tappable without turning the heads-up alarming. */
+.stock-warning-link {
+  color: #9a6b16;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.stock-warning-link:active {
+  opacity: 0.75;
+}
+
 /* Small muted helper line under a card label explaining a control. */
 .inv-hint {
   margin: 2px 0 8px;

@@ -172,12 +172,22 @@ export default function InventoryPage() {
     [load]
   );
 
-  // Low-stock warning: cards < 20 OR filament_rolls < 1.
+  // Low-stock warning: cards < 20 OR filament_rolls < 1. Each named item links
+  // to its reorder URL (from the catalog ITEMS) so the heads-up is actionable.
+  const reorderUrlFor = (value) => {
+    const it = ITEMS.find((x) => x.value === value);
+    return it ? it.reorderUrl : '';
+  };
   const lowCards = qtyOf('cards') < 20;
   const lowFilament = qtyOf('filament_rolls') < 1;
   const lowParts = [];
-  if (lowCards) lowParts.push('cards');
-  if (lowFilament) lowParts.push('filament rolls');
+  if (lowCards)
+    lowParts.push({ label: 'cards', url: reorderUrlFor('cards') });
+  if (lowFilament)
+    lowParts.push({
+      label: 'filament rolls',
+      url: reorderUrlFor('filament_rolls'),
+    });
   const showWarning = !loading && (lowCards || lowFilament);
 
   // Sort jobs: active (waiting/printing) first by created order, done last.
@@ -203,7 +213,25 @@ export default function InventoryPage() {
 
       {showWarning ? (
         <div className="stock-warning">
-          Running low on {lowParts.join(' and ')}. Time to reorder soon.
+          Running low on{' '}
+          {lowParts.map((part, i) => (
+            <span key={part.label}>
+              {i > 0 ? ' and ' : ' '}
+              {part.url ? (
+                <a
+                  className="stock-warning-link"
+                  href={part.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {part.label}
+                </a>
+              ) : (
+                part.label
+              )}
+            </span>
+          ))}
+          . Tap an item to reorder.
         </div>
       ) : null}
 

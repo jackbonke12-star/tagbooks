@@ -290,9 +290,14 @@ export default function DashboardPage() {
               return (
                 <div className="list-item followup-row" key={client.id}>
                   <div className="followup-main">
-                    <span className="followup-name">
+                    <Link
+                      className="followup-name followup-name-link"
+                      href={`/clients?q=${encodeURIComponent(
+                        client.business_name || ''
+                      )}`}
+                    >
                       {client.business_name}
-                    </span>
+                    </Link>
                     <span className={`chip chip-${client.stage}`}>
                       {stageLabel(client.stage)}
                     </span>
@@ -375,41 +380,56 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* STAT TILES - compact 2x2 grid on phones, 4-across on wide. */}
+      {/* STAT TILES - compact 2x2 grid on phones, 4-across on wide. Each tile
+          is a tappable shortcut: money tiles jump to /money, the recurring
+          tile to /recurring. The link is a bare wrapper (no restyle) so the
+          tile keeps its exact look and its no-layout-shift animations. */}
       <div className="stat-grid">
-        <div className="stat-tile">
-          <div className="stat-tile-label">Revenue</div>
-          <div className="stat-tile-value green">{money(revenue)}</div>
-        </div>
-        <div className="stat-tile">
-          <div className="stat-tile-label">Expenses</div>
-          <div className="stat-tile-value red">{money(expenseTotal)}</div>
-        </div>
-        <div className="stat-tile">
-          <div className="stat-tile-label">Profit</div>
-          <div className={`stat-tile-value ${profit >= 0 ? 'green' : 'red'}`}>
-            {money(profit)}
+        <Link className="stat-tile-link" href="/money">
+          <div className="stat-tile">
+            <div className="stat-tile-label">Revenue</div>
+            <div className="stat-tile-value green">{money(revenue)}</div>
           </div>
-        </div>
-        <div className="stat-tile">
-          <div className="stat-tile-label">Recurring / mo</div>
-          <div className="stat-tile-value green">{money(mrr)}</div>
-        </div>
+        </Link>
+        <Link className="stat-tile-link" href="/money">
+          <div className="stat-tile">
+            <div className="stat-tile-label">Expenses</div>
+            <div className="stat-tile-value red">{money(expenseTotal)}</div>
+          </div>
+        </Link>
+        <Link className="stat-tile-link" href="/money">
+          <div className="stat-tile">
+            <div className="stat-tile-label">Profit</div>
+            <div className={`stat-tile-value ${profit >= 0 ? 'green' : 'red'}`}>
+              {money(profit)}
+            </div>
+          </div>
+        </Link>
+        <Link className="stat-tile-link" href="/recurring">
+          <div className="stat-tile">
+            <div className="stat-tile-label">Recurring / mo</div>
+            <div className="stat-tile-value green">{money(mrr)}</div>
+          </div>
+        </Link>
       </div>
 
-      {/* PRINT QUEUE - WAITING */}
+      {/* PRINT QUEUE - WAITING — whole card is a shortcut to /inventory. */}
       {printWaiting.length > 0 ? (
-        <div className="card">
-          <div className="card-label">Print queue — waiting</div>
-          <div className="print-waiting-list">
-            {printWaiting.map((job) => (
-              <div className="list-item print-waiting-row" key={job.id}>
-                <span className="print-waiting-item">{itemLabel(job.item)}</span>
-                <span className="muted">{job.client || 'No client'}</span>
-              </div>
-            ))}
+        <Link className="card-link" href="/inventory">
+          <div className="card">
+            <div className="card-label">Print queue — waiting</div>
+            <div className="print-waiting-list">
+              {printWaiting.map((job) => (
+                <div className="list-item print-waiting-row" key={job.id}>
+                  <span className="print-waiting-item">
+                    {itemLabel(job.item)}
+                  </span>
+                  <span className="muted">{job.client || 'No client'}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        </Link>
       ) : null}
 
       {/* SETTLEMENT */}

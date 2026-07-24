@@ -13,6 +13,7 @@ function partnerName(key) {
 // When onEdit/onDelete are provided, action buttons are shown.
 export default function EntryRow({ entry, onEdit, onDelete }) {
   const isSale = entry.kind === 'sale';
+  const isRecurring = isSale && entry.type === 'recurring';
 
   const title = isSale
     ? entry.client_name || 'Sale'
@@ -31,6 +32,7 @@ export default function EntryRow({ entry, onEdit, onDelete }) {
       <div className="entry-main">
         <div className="entry-head">
           <span className="entry-title">{title}</span>
+          {isRecurring ? <span className="entry-tag">Recurring</span> : null}
           {who ? <span className="entry-tag">{partnerName(who)}</span> : null}
         </div>
         {subtitle ? <div className="entry-sub muted">{subtitle}</div> : null}

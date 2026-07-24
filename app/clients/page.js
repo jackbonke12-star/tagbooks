@@ -46,6 +46,16 @@ export default function ClientsPage() {
     load();
   }, [load]);
 
+  // Deep-link support: a `?q=` in the URL (e.g. from a dashboard follow-up row
+  // or a client's QR link) prefills the search box so the page lands filtered
+  // to that business. Read from window.location.search directly to avoid the
+  // Suspense requirement that useSearchParams imposes on the build.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const q = new URLSearchParams(window.location.search).get('q');
+    if (q) setSearch(q);
+  }, []);
+
   // Live updates: reload when clients change on any device.
   useRealtime(['clients'], load);
 
@@ -219,7 +229,12 @@ export default function ClientsPage() {
                           Review link
                         </a>
                         <CopyLinkButton url={client.google_review_url} />
-                        <Link className="review-qr" href="/coins">
+                        <Link
+                          className="review-qr"
+                          href={`/coins?q=${encodeURIComponent(
+                            client.business_name || ''
+                          )}`}
+                        >
                           QR
                         </Link>
                       </span>

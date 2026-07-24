@@ -76,8 +76,31 @@ export default function CalculatorPage() {
 
   const batch = calc.qty > 1;
 
+  // Suggested price is the calculator's takeaway number. Give the output an
+  // action: copy the plain figure to the clipboard with a brief confirmation.
+  const [copied, setCopied] = useState(false);
+
+  async function copySuggested() {
+    const value = calc.suggested.toFixed(2);
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard unavailable (older browser / no permission): fail quietly so
+      // the button never throws; the figure stays visible to copy by hand.
+    }
+  }
+
   return (
     <div className="calculator">
+      <div className="page-head">
+        <h1 className="page-title">Cost Calculator</h1>
+        <p className="page-title-sub">
+          Work out material and machine cost, then a suggested selling price.
+        </p>
+      </div>
+
       {/* Inputs */}
       <div className="card">
         <div className="card-label">Print details</div>
@@ -253,7 +276,31 @@ export default function CalculatorPage() {
           </div>
           <div className="calc-line">
             <span className="calc-line-label">Suggested price / unit</span>
-            <span className="calc-line-amt green">{money(calc.suggested)}</span>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '10px',
+              }}
+            >
+              <span className="calc-line-amt green">
+                {money(calc.suggested)}
+              </span>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={copySuggested}
+                aria-label="Copy suggested price"
+                style={{
+                  minWidth: '68px',
+                  minHeight: '32px',
+                  padding: '0 10px',
+                  fontSize: '13px',
+                }}
+              >
+                {copied ? 'Copied' : 'Copy'}
+              </button>
+            </span>
           </div>
 
           {batch ? (

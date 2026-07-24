@@ -4,19 +4,44 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
-// Pages that live under the "More" menu (occasional / secondary use).
-const MORE_ITEMS = [
-  { href: '/quote', label: 'Quote' },
-  { href: '/places', label: 'Places' },
-  { href: '/products', label: 'Products' },
-  { href: '/models', label: 'Models' },
-  { href: '/inventory', label: 'Inventory' },
-  { href: '/recurring', label: 'Recurring' },
-  { href: '/requests', label: 'Requests' },
-  { href: '/notes', label: 'Notes' },
-  { href: '/printer', label: 'Printer' },
-  { href: '/calculator', label: 'Cost Calc' },
+// Pages that live under the "More" menu (occasional / secondary use), organized
+// into labeled groups so the dropdown reads as scannable sections.
+const MORE_GROUPS = [
+  {
+    label: 'Sales',
+    items: [
+      { href: '/quote', label: 'Quote' },
+      { href: '/places', label: 'Places' },
+      { href: '/coins', label: 'Review Coins' },
+    ],
+  },
+  {
+    label: 'Catalog',
+    items: [
+      { href: '/products', label: 'Products' },
+      { href: '/models', label: 'Models' },
+      { href: '/inventory', label: 'Inventory' },
+    ],
+  },
+  {
+    label: 'Money',
+    items: [
+      { href: '/recurring', label: 'Recurring' },
+      { href: '/calculator', label: 'Cost Calc' },
+    ],
+  },
+  {
+    label: 'Workspace',
+    items: [
+      { href: '/requests', label: 'Requests' },
+      { href: '/notes', label: 'Notes' },
+      { href: '/printer', label: 'Printer' },
+    ],
+  },
 ];
+
+// Flat list of every "More" page, used only for the active-route check.
+const MORE_ITEMS = MORE_GROUPS.flatMap((group) => group.items);
 
 // True when the current path matches a nav route (exact or nested).
 function matches(pathname, href) {
@@ -122,19 +147,26 @@ export default function TopNav() {
 
           {open ? (
             <div className="topnav-menu" role="menu">
-              {MORE_ITEMS.map((item) => (
-                <Link
-                  key={item.href}
-                  role="menuitem"
-                  className={
-                    'topnav-menu-item' +
-                    (matches(pathname, item.href) ? ' on' : '')
-                  }
-                  href={item.href}
-                  onClick={() => setOpen(false)}
-                >
-                  {item.label}
-                </Link>
+              {MORE_GROUPS.map((group) => (
+                <div key={group.label} className="topnav-menu-group">
+                  <div className="topnav-menu-heading" aria-hidden="true">
+                    {group.label}
+                  </div>
+                  {group.items.map((item) => (
+                    <Link
+                      key={item.href}
+                      role="menuitem"
+                      className={
+                        'topnav-menu-item' +
+                        (matches(pathname, item.href) ? ' on' : '')
+                      }
+                      href={item.href}
+                      onClick={() => setOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
               ))}
             </div>
           ) : null}
