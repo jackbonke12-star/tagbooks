@@ -18,20 +18,21 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 // terms, so we flag "verify before reselling" rather than assume.
 const MODELS = [
   {
-    id: 'customizable-nfc-tag',
-    name: 'Customizable Review Coin',
-    designer: 'archquillian',
-    platform: 'MakerWorld',
-    url: 'https://makerworld.com/en/models/782699-customizable-nfc-tag',
+    id: 'tagbooks-review-coin',
+    name: 'TagBooks Review Coin',
+    designer: 'TagBooks (our design)',
+    platform: 'TagBooks',
+    own: true,
+    download: '/models/review-coin.stl',
     image: '/models/coin-review.jpg',
-    fits: '25mm NTAG215 tag',
-    tagline: 'Add our own logo + five-star face.',
+    fits: '25mm sticker · 25.6mm pocket',
+    tagline: 'Our own coin — five raised stars, ready to print.',
     description:
-      'Parametric NFC disc you can brand with a custom logo, star rating, and colors. The cleanest starting point for our own review coin — pause the print, drop the tag in, resume.',
-    availability: 'Free download',
-    print_time: '~35 min each',
-    bulk_info: 'Plates 12-16 per bed for batch runs.',
-    license: 'Free download — confirm commercial-use terms on MakerWorld before reselling.',
+      'Our in-house 32mm coin with five embossed stars on the face and a 25.6mm x 0.6mm recess sized for the 25mm NTAG215 stickers we buy — peel, press into the pocket, done. Watertight STL, no license strings: free for us to print and sell.',
+    availability: 'Free — our design',
+    print_time: '~20 min each',
+    bulk_info: 'Plates ~16 per bed for batch runs.',
+    license: 'Our own design — free to print and sell, no third-party license.',
   },
   {
     id: 'filament-sample-coin',
@@ -137,12 +138,13 @@ function ModelCard({ model, onOpen }) {
   return (
     <button
       type="button"
-      className="prod-card"
+      className={'prod-card' + (model.own ? ' mdl-own' : '')}
       onClick={() => onOpen(model.id)}
       aria-label={`View ${model.name} details`}
     >
       <div className="prod-shot">
         <ModelImage src={model.image} alt={model.name} />
+        {model.own ? <span className="mdl-badge">Ours</span> : null}
       </div>
       <div className="prod-body">
         <div className="prod-top">
@@ -229,14 +231,24 @@ function ModelDetail({ model, onClose }) {
               <p className="mdl-license">{model.license}</p>
 
               <div className="mdl-actions">
-                <a
-                  href={model.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-primary mdl-cta"
-                >
-                  Open design source
-                </a>
+                {model.download ? (
+                  <a
+                    href={model.download}
+                    download
+                    className="btn btn-primary mdl-cta"
+                  >
+                    Download STL
+                  </a>
+                ) : (
+                  <a
+                    href={model.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-primary mdl-cta"
+                  >
+                    Open design source
+                  </a>
+                )}
                 <Link href="/printer" className="btn mdl-cta-alt">
                   Send to printer
                 </Link>

@@ -3,6 +3,27 @@
    card foot, the render caption, the license note, and the action buttons. All
    token-based so light + dark both read correctly. */
 
+/* Featured "ours" card: green frame + a stamped corner badge on the photo. */
+.mdl-own {
+  border-color: var(--green);
+  box-shadow: 0 0 0 1px var(--green), 0 1px 0 var(--card-lift, #d8cfbb);
+}
+
+.mdl-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 1;
+  padding: 3px 9px;
+  border-radius: 3px;
+  background: var(--green);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 /* Fit size on the card foot (sits where the price would on a product card). */
 .mdl-fits {
   font-weight: 700;
