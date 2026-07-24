@@ -93,6 +93,41 @@
   font-size: 14px;
 }
 
+/* Tiny legend that decodes the vertical pace tick on the bar, so the marker
+   isn't a mystery line. A matching mini-tick sits inline before the sentence. */
+.goal-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.goal-legend-tick {
+  flex-shrink: 0;
+  width: 2px;
+  height: 12px;
+  background: var(--ink);
+  opacity: 0.5;
+  border-radius: 1px;
+}
+
+/* One-line hint under a card label (e.g. "Tap a number to call."). */
+.card-hint {
+  font-size: 12px;
+  margin-top: 2px;
+  margin-bottom: 6px;
+}
+
+/* Friendly empty states: a touch more room and easy line length. */
+.empty-note {
+  font-size: 13px;
+  line-height: 1.45;
+  padding: 4px 0 2px;
+  overflow-wrap: anywhere;
+}
+
 .goal-pct {
   font-weight: 700;
   color: var(--ink);
@@ -260,9 +295,26 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Tap-to-call: a clear, finger-sized affordance rather than a bare number.
+   Underlined and padded so it reads as an action and clears the 44px target. */
 .followup-tel {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 4px 8px;
+  margin: -4px -8px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  border-radius: var(--radius);
+}
+.followup-tel:active {
+  background: rgba(63, 138, 79, 0.12);
+}
+
+.followup-nophone {
+  font-size: 13px;
 }
 
 /* Stage chips as rubber stamps (shared shape with clients page). The faint

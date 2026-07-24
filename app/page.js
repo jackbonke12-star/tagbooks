@@ -268,12 +268,22 @@ export default function DashboardPage() {
 
   return (
     <div className="dash">
+      {/* PAGE INTRO — says what this screen is at a glance. */}
+      <div className="page-head dash-head">
+        <h1 className="page-title">This month</h1>
+        <p className="page-title-sub">
+          {monthName(monthIndex)} {year} at a glance — your goal, follow-ups, and
+          the numbers.
+        </p>
+      </div>
+
       {error ? <div className="form-error">{error}</div> : null}
 
       {/* FOLLOW-UPS DUE */}
       {followups.length > 0 ? (
         <div className="card">
           <div className="card-label">Follow-ups due</div>
+          <div className="card-hint muted">Tap a number to call.</div>
           <div className="followup-list">
             {followups.map((client) => {
               const tel = telHref(client.phone);
@@ -289,17 +299,23 @@ export default function DashboardPage() {
                   </div>
                   <div className="followup-meta">
                     <span className="red followup-date">
-                      {shortDate(client.next_followup)}
+                      Due {shortDate(client.next_followup)}
                     </span>
                     {client.phone ? (
                       tel ? (
-                        <a className="followup-tel green" href={tel}>
-                          {client.phone}
+                        <a
+                          className="followup-tel green"
+                          href={tel}
+                          aria-label={`Call ${client.business_name}`}
+                        >
+                          Call {client.phone}
                         </a>
                       ) : (
                         <span className="muted">{client.phone}</span>
                       )
-                    ) : null}
+                    ) : (
+                      <span className="muted followup-nophone">No number</span>
+                    )}
                   </div>
                 </div>
               );
@@ -324,6 +340,7 @@ export default function DashboardPage() {
             <div
               className="goal-pace-marker"
               style={{ left: `${expectedPct}%` }}
+              title="Where you'd be if you hit the goal at an even daily pace"
               aria-hidden="true"
             />
           ) : null}
@@ -333,6 +350,12 @@ export default function DashboardPage() {
           <span className="goal-pct">{Math.round(pct)}%</span>
           {overGoal ? ' — goal smashed' : ''}
         </div>
+        {!overGoal ? (
+          <div className="goal-legend muted">
+            <span className="goal-legend-tick" aria-hidden="true" />
+            The tick marks where you should be by today to stay on track.
+          </div>
+        ) : null}
         <div className="goal-pace">
           <span className="goal-days">
             {daysLeft} day{daysLeft === 1 ? '' : 's'} left
@@ -342,7 +365,7 @@ export default function DashboardPage() {
           ) : (
             <>
               <span className="goal-need muted">
-                {money(perDay)}/day to goal
+                Need {money(perDay)}/day
               </span>
               <span className={`goal-pace-tag ${onPace ? 'green' : 'red'}`}>
                 {onPace ? 'On pace' : 'Behind pace'}
@@ -369,7 +392,7 @@ export default function DashboardPage() {
           </div>
         </div>
         <div className="stat-tile">
-          <div className="stat-tile-label">Monthly recurring</div>
+          <div className="stat-tile-label">Recurring / mo</div>
           <div className="stat-tile-value green">{money(mrr)}</div>
         </div>
       </div>
@@ -411,7 +434,10 @@ export default function DashboardPage() {
       <div className="card">
         <div className="card-label">Latest activity</div>
         {feed.length === 0 ? (
-          <div className="muted">No activity yet.</div>
+          <div className="muted empty-note">
+            Nothing logged yet. Add a sale or expense on the Money page and it
+            shows up here.
+          </div>
         ) : (
           <div className="feed-list">
             {feed.map((entry) => (

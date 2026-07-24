@@ -331,7 +331,7 @@ export default function QuotePage() {
       <div className="page-head">
         <h1 className="page-title">Quote Builder</h1>
         <p className="page-title-sub">
-          Build a quote on the spot, save it to the client, and text or print it.
+          Four steps: pick the customer, add items, check the total, then send it.
         </p>
       </div>
 
@@ -339,7 +339,9 @@ export default function QuotePage() {
 
       {/* Customer */}
       <div className="card">
-        <div className="card-label">Customer</div>
+        <div className="card-label">
+          <span className="q-step">1</span> Customer
+        </div>
         <div className="field">
           <label className="label">Existing client</label>
           <select
@@ -390,7 +392,10 @@ export default function QuotePage() {
 
       {/* Line items */}
       <div className="card">
-        <div className="card-label">Line items</div>
+        <div className="card-label">
+          <span className="q-step">2</span> Line items
+        </div>
+        <p className="q-hint">Tap a product to add it. Adjust the quantity and price after.</p>
         <div className="q-add-row">
           {products.map((p) => (
             <button
@@ -411,7 +416,9 @@ export default function QuotePage() {
         </div>
 
         {lines.length === 0 ? (
-          <div className="muted load-line">Tap a product above to start the quote.</div>
+          <div className="muted load-line">
+            No items yet — tap a product chip above to add the first line.
+          </div>
         ) : (
           <div className="q-lines">
             {lines.map((l) => (
@@ -495,7 +502,9 @@ export default function QuotePage() {
 
       {/* Totals */}
       <div className="card">
-        <div className="card-label">Total</div>
+        <div className="card-label">
+          <span className="q-step">3</span> Total
+        </div>
         <label className="q-gst">
           <input
             type="checkbox"
@@ -539,49 +548,83 @@ export default function QuotePage() {
           />
           Schedule a follow-up when saved
         </label>
+        <p className="q-hint">
+          On save, this drops a callback reminder in the Places follow-up queue so
+          the lead isn&apos;t forgotten.
+        </p>
         {followupOn ? (
-          <div className="seg q-followup-seg">
-            {FOLLOWUP_OPTIONS.map((o) => (
-              <button
-                key={o.d}
-                type="button"
-                className={followDays === o.d ? 'on' : ''}
-                onClick={() => setFollowDays(o.d)}
-              >
-                {o.l}
-              </button>
-            ))}
-          </div>
+          <>
+            <div className="q-hint q-hint-tight">Remind me in:</div>
+            <div className="seg q-followup-seg">
+              {FOLLOWUP_OPTIONS.map((o) => (
+                <button
+                  key={o.d}
+                  type="button"
+                  className={followDays === o.d ? 'on' : ''}
+                  onClick={() => setFollowDays(o.d)}
+                >
+                  {o.l}
+                </button>
+              ))}
+            </div>
+          </>
         ) : null}
 
-        <div className="q-actions">
+        <div className="q-save-row">
+          <span className="q-step">4</span>
           <button
             type="button"
-            className="btn btn-primary"
+            className="btn btn-primary q-save-btn"
             onClick={saveQuote}
             disabled={!canSave || saving}
+            title={
+              canSave
+                ? 'Save this quote to the client record'
+                : 'Add a business name and at least one line item first'
+            }
           >
             {saving ? 'Saving…' : 'Save to client'}
-          </button>
-          <a
-            className={'btn' + (filledLines.length ? '' : ' q-btn-off')}
-            href={smsHref}
-          >
-            Text quote
-          </a>
-          <button type="button" className="btn" onClick={copyText}>
-            {copied ? 'Copied' : 'Copy text'}
-          </button>
-          <button type="button" className="btn" onClick={printQuote}>
-            Print / PDF
-          </button>
-          <button type="button" className="btn btn-ghost" onClick={resetForm}>
-            Clear
           </button>
           {savedFlash ? (
             <span className="q-saved">
               Saved{followupOn ? ` · follow-up in ${followDays}d` : ''}
             </span>
+          ) : null}
+        </div>
+        {!canSave ? (
+          <p className="q-hint q-hint-warn">
+            Add a business name and at least one line item to save.
+          </p>
+        ) : null}
+
+        <div className="q-send">
+          <div className="q-send-label">Send it:</div>
+          <div className="q-actions">
+            <a
+              className={'btn' + (filledLines.length ? '' : ' q-btn-off')}
+              href={smsHref}
+              title={
+                filledLines.length
+                  ? 'Open a text message with this quote'
+                  : 'Add a line item first — nothing to text yet'
+              }
+            >
+              Text quote
+            </a>
+            <button type="button" className="btn" onClick={copyText}>
+              {copied ? 'Copied' : 'Copy text'}
+            </button>
+            <button type="button" className="btn" onClick={printQuote}>
+              Print / PDF
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={resetForm}>
+              Clear
+            </button>
+          </div>
+          {filledLines.length === 0 ? (
+            <p className="q-hint">
+              Text quote turns on once you add a line item above.
+            </p>
           ) : null}
         </div>
       </div>
@@ -590,6 +633,7 @@ export default function QuotePage() {
       {quotes.length > 0 ? (
         <div className="card">
           <div className="card-label">Recent quotes</div>
+          <p className="q-hint">Tap Load to refill the form with a past quote and re-send or tweak it.</p>
           <div className="q-recent">
             {quotes.map((q) => {
               const n = Array.isArray(q.items) ? q.items.length : 0;
@@ -606,6 +650,7 @@ export default function QuotePage() {
                     type="button"
                     className="btn btn-ghost"
                     onClick={() => loadQuote(q)}
+                    title="Refill the form with this quote"
                   >
                     Load
                   </button>

@@ -192,17 +192,27 @@ export default function InventoryPage() {
 
   return (
     <div className="inventory">
+      <div className="page-head">
+        <h1 className="page-title">Inventory</h1>
+        <p className="page-title-sub">
+          Track stock on hand, incoming orders, and the print queue.
+        </p>
+      </div>
+
       {loadError ? <div className="form-error">{loadError}</div> : null}
 
       {showWarning ? (
         <div className="stock-warning">
-          Low stock: {lowParts.join(' and ')}. Reorder soon.
+          Running low on {lowParts.join(' and ')}. Time to reorder soon.
         </div>
       ) : null}
 
       {/* Inventory */}
       <div className="card">
-        <div className="card-label">Inventory</div>
+        <div className="card-label">Stock on hand</div>
+        <p className="inv-hint muted">
+          Tap the number to type an exact count, or use − and + to adjust by one.
+        </p>
         {loading ? (
           <div className="muted load-line">Loading…</div>
         ) : (
@@ -232,6 +242,10 @@ export default function InventoryPage() {
       {incoming.length > 0 ? (
         <div className="card">
           <div className="card-label">Incoming orders</div>
+          <p className="inv-hint muted">
+            Stock you ordered from the Money tab. Tap “Mark received” when it
+            arrives to add the quantity to your stock on hand.
+          </p>
           <div className="inv-incoming">
             {incoming.map((order) => {
               const arr = order.arrival_date;
@@ -279,10 +293,17 @@ export default function InventoryPage() {
       {/* Print queue */}
       <div className="card">
         <div className="card-label">Print queue</div>
+        {!loading && sortedJobs.length > 0 ? (
+          <p className="inv-hint muted">
+            Tap the status stamp to move a job along: Waiting → Printing → Done.
+          </p>
+        ) : null}
         {loading ? (
           <div className="muted load-line">Loading…</div>
         ) : sortedJobs.length === 0 ? (
-          <div className="muted load-line">No print jobs.</div>
+          <div className="muted load-line">
+            Nothing to print right now. Add a job below to track it.
+          </div>
         ) : (
           <div className="pq-list">
             {sortedJobs.map((job) => (

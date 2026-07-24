@@ -50,6 +50,28 @@
   opacity: 0.5;
 }
 
+/* ---------- Empty state ---------- */
+
+.prod-empty {
+  text-align: center;
+  padding: 26px 18px;
+}
+
+.prod-empty-title {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.prod-empty-sub {
+  margin: 0 auto;
+  max-width: 46ch;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
 /* ---------- Showcase grid ---------- */
 
 .prod-grid {
@@ -178,13 +200,19 @@
   overflow-wrap: anywhere;
 }
 
+/* Tap-affordance cue on the card foot: reads as an actionable hint, not a
+   static label. The card itself is the button; this just signals it's tappable. */
 .prod-more {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--green);
   white-space: nowrap;
+}
+
+.prod-more::after {
+  content: ' \203A';
 }
 
 /* ---------- Detail overlay ---------- */
@@ -423,9 +451,21 @@
   text-decoration: none;
 }
 
+/* One-line helper under the CTA explaining where the button goes. */
+.prod-cta-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 619px) {
   .prod-cta {
     align-self: stretch;
     width: 100%;
+  }
+
+  .prod-cta-hint {
+    text-align: center;
   }
 }

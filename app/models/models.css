@@ -47,6 +47,34 @@
   text-transform: uppercase;
 }
 
+/* Card foot cue for reference (non-ours) models: muted so only our own
+   downloadable design shows the green "Tap to download" affordance. */
+.mdl-more-ref {
+  color: var(--muted);
+}
+
+/* One-line "what is this" banner in the detail sheet: separates our
+   downloadable design from external reference designs at a glance. */
+.mdl-kind {
+  margin: 12px 0 0;
+  padding: 8px 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel2);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+/* Our design: green-framed so it clearly stands apart from references. */
+.mdl-kind-own {
+  border-color: var(--green);
+  box-shadow: inset 0 0 0 1px var(--green);
+  color: var(--ink);
+}
+
 /* Fit size on the card foot (sits where the price would on a product card). */
 .mdl-fits {
   font-weight: 700;
@@ -66,25 +94,48 @@
   text-align: center;
 }
 
-/* License note: a cautionary stamp above the action buttons. */
+/* License note: an informational stamp above the action buttons. Labelled
+   and calm (not alarming) so it reads as helpful guidance, not a warning. */
 .mdl-license {
   margin: 16px 0 0;
   padding: 10px 12px;
-  border: 1px dashed var(--rule-strong);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--panel2);
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--muted);
   overflow-wrap: anywhere;
 }
 
-/* Action row: primary source link + secondary send-to-printer link. */
+.mdl-license-label {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.mdl-license-text {
+  display: block;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+/* Action row: primary link (download / open source) + secondary printer link. */
 .mdl-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 16px;
+}
+
+/* One-line helper under the actions explaining what each button does. */
+.mdl-actions-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .mdl-cta,

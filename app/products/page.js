@@ -109,7 +109,8 @@ export default function ProductsPage() {
       <div className="page-head">
         <h1 className="page-title">Products</h1>
         <p className="page-title-sub">
-          Tap any product for pricing, availability, and bulk order details.
+          What we sell. Tap any product for pricing, availability, and bulk
+          order details.
         </p>
       </div>
 
@@ -120,8 +121,12 @@ export default function ProductsPage() {
           <div className="muted load-line">Loading…</div>
         </div>
       ) : products.length === 0 ? (
-        <div className="card">
-          <div className="muted load-line">No products yet.</div>
+        <div className="card prod-empty">
+          <p className="prod-empty-title">No products yet</p>
+          <p className="prod-empty-sub muted">
+            Products you add to the catalog will show up here as tappable
+            cards you can share with a client.
+          </p>
         </div>
       ) : (
         <div className="prod-grid">
@@ -173,7 +178,7 @@ function ProductCard({ product, cover, onOpen }) {
         <div className="prod-foot">
           <span className="prod-price">{priceLabel(product)}</span>
           <span className="prod-more" aria-hidden="true">
-            View details
+            Tap for details
           </span>
         </div>
       </div>
@@ -280,6 +285,9 @@ function ProductDetail({ product, images, onClose }) {
               <Link href="/money" className="btn btn-primary prod-cta">
                 Add to a sale
               </Link>
+              <p className="prod-cta-hint muted">
+                Opens Money to log this product as a sale for a client.
+              </p>
             </div>
           </div>
         </div>

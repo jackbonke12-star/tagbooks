@@ -121,16 +121,27 @@ export default function ModelsPage() {
       <div className="page-head">
         <h1 className="page-title">Coin Models</h1>
         <p className="page-title-sub">
-          Safe, free printable NFC coin designs. Tap one for the fit size,
-          source, and download link. Confirm each license before selling prints.
+          Printable NFC coin designs. No. 01 is our own coin, ready to
+          download and print. The rest are free reference designs from other
+          makers. Tap any card for the fit size, source, and license.
         </p>
       </div>
 
-      <div className="prod-grid">
-        {MODELS.map((model) => (
-          <ModelCard key={model.id} model={model} onOpen={openDetail} />
-        ))}
-      </div>
+      {MODELS.length === 0 ? (
+        <div className="card prod-empty">
+          <p className="prod-empty-title">No coin models yet</p>
+          <p className="prod-empty-sub muted">
+            Coin designs will show up here as tappable cards, with our own
+            printable design listed first.
+          </p>
+        </div>
+      ) : (
+        <div className="prod-grid">
+          {MODELS.map((model) => (
+            <ModelCard key={model.id} model={model} onOpen={openDetail} />
+          ))}
+        </div>
+      )}
 
       {open ? <ModelDetail model={open} onClose={closeDetail} /> : null}
     </div>
@@ -162,8 +173,11 @@ function ModelCard({ model, onOpen }) {
         <p className="prod-tagline">{model.tagline}</p>
         <div className="prod-foot">
           <span className="mdl-fits">{model.fits}</span>
-          <span className="prod-more" aria-hidden="true">
-            View details
+          <span
+            className={'prod-more' + (model.own ? '' : ' mdl-more-ref')}
+            aria-hidden="true"
+          >
+            {model.own ? 'Tap to download' : 'Tap for source'}
           </span>
         </div>
       </div>
@@ -220,12 +234,27 @@ function ModelDetail({ model, onClose }) {
               <div className="prod-info-head">
                 <h2 className="prod-info-name">
                   {model.no ? (
-                    <span className="mdl-no mdl-no-lg">No. {model.no}</span>
+                    <span
+                      className="mdl-no mdl-no-lg"
+                      title={`Model reference number ${model.no}`}
+                    >
+                      No. {model.no}
+                    </span>
                   ) : null}
                   {model.name}
                 </h2>
                 <span className="prod-cat">{model.platform}</span>
               </div>
+
+              <p
+                className={
+                  'mdl-kind' + (model.own ? ' mdl-kind-own' : '')
+                }
+              >
+                {model.own
+                  ? 'Our design — download the STL and print it yourself.'
+                  : 'Reference design by another maker — download it from the source page.'}
+              </p>
 
               <p className="prod-info-tagline">{model.tagline}</p>
 
@@ -241,7 +270,10 @@ function ModelDetail({ model, onClose }) {
                 <SpecRow label="Bulk runs" value={model.bulk_info} />
               </dl>
 
-              <p className="mdl-license">{model.license}</p>
+              <div className="mdl-license">
+                <span className="mdl-license-label">License</span>
+                <span className="mdl-license-text">{model.license}</span>
+              </div>
 
               <div className="mdl-actions">
                 {model.download ? (
@@ -266,6 +298,11 @@ function ModelDetail({ model, onClose }) {
                   Send to printer
                 </Link>
               </div>
+              <p className="mdl-actions-hint muted">
+                {model.download
+                  ? 'Download saves the STL file. Send to printer opens the Printer page to queue a run.'
+                  : 'Open source opens the maker’s page in a new tab to download the STL. Send to printer opens the Printer page to queue a run.'}
+              </p>
             </div>
           </div>
         </div>

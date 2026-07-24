@@ -8,6 +8,39 @@
   gap: 16px;
 }
 
+/* Step badge in card labels (1 pick / 2 items / 3 total / 4 send). */
+.q-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 6px;
+  border-radius: 999px;
+  background: var(--rule-strong);
+  color: var(--panel);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+/* Small helper text under controls. */
+.q-hint {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0 0 10px;
+  overflow-wrap: anywhere;
+}
+.q-hint-tight {
+  margin: 2px 0 6px;
+}
+.q-hint-warn {
+  color: var(--red);
+  margin-top: -2px;
+}
+
 /* ---------- Add-product chips ---------- */
 .q-add-row {
   display: flex;
@@ -32,6 +65,9 @@
 }
 .q-add-chip:active {
   transform: translateY(1px);
+}
+.q-add-name {
+  white-space: nowrap;
 }
 .q-add-price {
   color: var(--green);
@@ -218,6 +254,31 @@
 .q-grand span:first-child {
   color: var(--ink);
   font-size: 13px;
+}
+
+/* ---------- Save + Send actions ---------- */
+.q-save-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.q-save-btn {
+  flex: 1 1 auto;
+}
+.q-send {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.q-send-label {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
 }
 
 /* ---------- Actions ---------- */

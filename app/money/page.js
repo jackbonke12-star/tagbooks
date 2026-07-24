@@ -251,6 +251,13 @@ export default function MoneyPage() {
 
   return (
     <div className="money" ref={formTopRef}>
+      <div className="page-head">
+        <h1 className="page-title">Money</h1>
+        <p className="page-title-sub">
+          Log every sale and expense, then see how the month added up.
+        </p>
+      </div>
+
       <MonthSwitcher
         year={year}
         monthIndex={monthIndex}
@@ -264,16 +271,21 @@ export default function MoneyPage() {
           className={mode === 'sale' ? 'on' : ''}
           onClick={() => onModeChange('sale')}
         >
-          Add Sale
+          Add sale
         </button>
         <button
           type="button"
           className={mode === 'expense' ? 'on' : ''}
           onClick={() => onModeChange('expense')}
         >
-          Add Expense
+          Add expense
         </button>
       </div>
+      <p className="mode-hint muted">
+        {mode === 'sale'
+          ? 'Money coming in — record a job you closed.'
+          : 'Money going out — record something you bought.'}
+      </p>
 
       {mode === 'sale' ? (
         <SaleForm
@@ -319,6 +331,13 @@ export default function MoneyPage() {
           Calendar
         </button>
       </div>
+      <p className="view-hint muted">
+        {view === 'entries'
+          ? 'Every sale and expense this month, newest first.'
+          : view === 'breakdown'
+          ? 'Totals grouped by product and category, with the bottom-line net.'
+          : 'Tap any day to see just that day’s entries.'}
+      </p>
 
       {/* ENTRIES view: the existing list */}
       {view === 'entries' ? (
@@ -328,7 +347,10 @@ export default function MoneyPage() {
           {loading ? (
             <div className="muted load-line">Loading…</div>
           ) : rows.length === 0 ? (
-            <div className="muted load-line">No entries this month.</div>
+            <div className="muted load-line">
+              Nothing logged this month yet. Use Add sale or Add expense above to
+              start the ledger.
+            </div>
           ) : (
             <div className="entry-list">
               {rows.map((entry) => (
@@ -416,15 +438,15 @@ export default function MoneyPage() {
                       className="cal-clear-day"
                       onClick={() => setSelectedDay(null)}
                     >
-                      Clear
+                      Show whole month
                     </button>
                   ) : null}
                 </div>
                 {dayRows.length === 0 ? (
                   <div className="muted load-line">
                     {selectedDay
-                      ? 'No entries on this day.'
-                      : 'No entries this month.'}
+                      ? 'Nothing on this day. Tap another day above.'
+                      : 'Nothing logged this month yet.'}
                   </div>
                 ) : (
                   <div className="entry-list">
@@ -1271,6 +1293,10 @@ function ExpenseForm({ editing, onSaved, onCancelEdit }) {
           />
           This is an inventory order (stock coming in)
         </label>
+        <p className="exp-stock-caption muted">
+          Tick this when you’re buying supplies to restock — it’ll appear in the
+          Inventory tab as an incoming order.
+        </p>
       </div>
 
       {toStock ? (
@@ -1312,8 +1338,9 @@ function ExpenseForm({ editing, onSaved, onCancelEdit }) {
               onChange={(e) => setArrivalDate(e.target.value)}
             />
           </div>
-          <p className="exp-stock-hint muted">
-            Shows in Inventory as incoming. Mark it received there to add it to
+          <p className="exp-stock-hint">
+            This shows up in the Inventory tab as an incoming order. When it
+            arrives, tap “Mark received” there and the quantity is added to your
             stock.
           </p>
         </div>

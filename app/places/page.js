@@ -492,8 +492,8 @@ export default function PlacesPage() {
       <div className="card places-intro page-head">
         <h1 className="places-title page-title">PLACES TO HIT</h1>
         <p className="places-lede page-title-sub">
-          Local businesses in NW Calgary to pitch. Tap directions to navigate
-          there.
+          Local businesses in NW Calgary to pitch. Tap the green Quote button on
+          any row to jump into a prefilled quote.
         </p>
       </div>
 
@@ -544,6 +544,10 @@ export default function PlacesPage() {
           <div className="card-label">
             Follow up today <span className="fq-count">{dueFollowups.length}</span>
           </div>
+          <p className="fq-hint muted">
+            Due or overdue callbacks. Snooze pushes it 3 days; Done clears the
+            reminder.
+          </p>
           <div className="fq-list">
             {dueFollowups.map((place) => {
               const st = followupState(place.followup_date, today);
@@ -575,13 +579,18 @@ export default function PlacesPage() {
                       >
                         Directions
                       </a>
-                      <Link className="fq-btn fq-quote" href={quoteHref(place)}>
+                      <Link
+                        className="fq-btn fq-quote"
+                        href={quoteHref(place)}
+                        title="Start a prefilled quote for this business"
+                      >
                         Quote
                       </Link>
                       <button
                         type="button"
                         className="fq-btn"
                         onClick={() => setFollowup(place, addDays(today, 3))}
+                        title="Push this follow-up out 3 days"
                       >
                         Snooze 3d
                       </button>
@@ -589,6 +598,7 @@ export default function PlacesPage() {
                         type="button"
                         className="fq-btn fq-done"
                         onClick={() => setFollowup(place, '')}
+                        title="Clear this follow-up reminder"
                       >
                         Done
                       </button>
@@ -688,7 +698,7 @@ export default function PlacesPage() {
         ) : visible.length === 0 ? (
           <div className="muted load-line">
             {search.trim() || filter !== 'all' || community !== 'all'
-              ? 'No matches.'
+              ? 'No places match those filters. Try clearing the search or picking "All".'
               : 'No places yet. Tap "Add a place" to add the first business to hit.'}
           </div>
         ) : (
@@ -730,7 +740,8 @@ export default function PlacesPage() {
                         type="button"
                         className={`stamp stamp-${place.status || 'to_visit'}`}
                         onClick={() => advanceStatus(place)}
-                        aria-label="Advance status"
+                        aria-label={`Status ${statusLabel(place.status)} — tap to advance to ${statusLabel(NEXT_STATUS[place.status] || 'visited')}`}
+                        title={`Tap to advance: now ${statusLabel(place.status)} → ${statusLabel(NEXT_STATUS[place.status] || 'visited')}`}
                       >
                         {statusLabel(place.status)}
                       </button>
@@ -743,6 +754,7 @@ export default function PlacesPage() {
                             : `Follow up ${fu.label}`}
                         </span>
                       ) : null}
+                      <span className="place-stamp-hint muted">tap stamp to advance</span>
                     </span>
                     <span className="place-links">
                       <a
@@ -771,8 +783,12 @@ export default function PlacesPage() {
                           Review link
                         </a>
                       ) : null}
-                      <Link className="place-quote" href={quoteHref(place)}>
-                        Quote
+                      <Link
+                        className="place-quote"
+                        href={quoteHref(place)}
+                        title="Start a prefilled quote for this business"
+                      >
+                        Quote &rarr;
                       </Link>
                     </span>
                   </div>
@@ -823,13 +839,14 @@ export default function PlacesPage() {
                       </button>
                     ) : null}
                     <div className="place-followup">
-                      <label className="place-fu-label">Follow-up</label>
+                      <label className="place-fu-label">Follow up on</label>
                       <input
                         type="date"
                         className="place-fu-input"
                         value={place.followup_date || ''}
                         onChange={(e) => setFollowup(place, e.target.value)}
                         aria-label={`Set follow-up date for ${place.name}`}
+                        title="Pick a date to add this business to the follow-up queue"
                       />
                       {place.followup_date ? (
                         <button

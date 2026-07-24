@@ -17,15 +17,24 @@
   margin-top: 8px;
 }
 
-/* Low-stock warning banner. */
+/* Low-stock warning banner. Calm amber heads-up, not an alarming red error. */
 .stock-warning {
-  background: rgba(163, 51, 34, 0.08);
-  border-left: 3px solid var(--red);
-  color: var(--red);
+  background: rgba(154, 107, 22, 0.1);
+  border-left: 3px solid #9a6b16;
+  color: var(--ink);
   border-radius: var(--radius);
   padding: 12px 14px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* Small muted helper line under a card label explaining a control. */
+.inv-hint {
+  margin: 2px 0 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 /* Inventory rows. */
@@ -298,10 +307,11 @@
 }
 .inv-in-eta {
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
 }
 .inv-in-recv {
   white-space: nowrap;
+  min-height: 44px;
 }
