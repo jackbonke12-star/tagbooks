@@ -194,7 +194,8 @@ export default function QuotePage() {
 
   const smsHref = useMemo(() => {
     const digits = String(phone || '').replace(/\D/g, '');
-    return `sms:${digits}&body=${encodeURIComponent(quoteText)}`;
+    // `?&body=` is the cross-platform form: iOS and Android both honour it.
+    return `sms:${digits}?&body=${encodeURIComponent(quoteText)}`;
   }, [phone, quoteText]);
 
   const copyText = useCallback(async () => {
