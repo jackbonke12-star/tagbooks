@@ -1,9 +1,9 @@
 :root {
   /* Paper ledger palette. Token NAMES preserved; values remapped to paper. */
-  --bg: #e7dcc4;        /* beige paper */
-  --panel: #f1e9d6;     /* lighter beige card */
-  --panel2: #ddd0b4;    /* tinted beige (inputs, fills) */
-  --line: #c6ba9a;      /* faint ink rule */
+  --bg: #e5d4b2;        /* warm beige paper */
+  --panel: #ede0c2;     /* warm beige card (no white) */
+  --panel2: #dbc9a2;    /* deeper warm beige (inputs, fills) */
+  --line: #c6b48d;      /* faint ink rule */
   --ink: #1c1a15;       /* near-black ink */
   --muted: #8a8371;     /* faded ink */
   --green: #2f5d3a;     /* deep stamp green */
@@ -654,7 +654,7 @@ button {
 .select:focus,
 .textarea:focus {
   border-color: var(--ink);
-  background: var(--input-focus, #fffdf7);
+  background: var(--input-focus, #f2e7cd);
   box-shadow: inset 0 -2px 0 var(--ink);
 }
 

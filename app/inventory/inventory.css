@@ -155,7 +155,7 @@
 
 .inv-qty:focus {
   border-color: var(--ink);
-  background: #fffdf7;
+  background: var(--input-focus, #f2e7cd);
   box-shadow: inset 0 -2px 0 var(--ink);
 }
 

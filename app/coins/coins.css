@@ -155,9 +155,9 @@
   min-width: 0;
 }
 
-/* Paper tile that frames the QR. */
+/* Paper tile that frames the QR (light beige — still high-contrast for scans). */
 .coin-tile {
-  background: #fffdf7;
+  background: #f2e7cd;
   border: 1px solid var(--line);
   border-radius: 3px;
   padding: 10px;
