@@ -47,6 +47,9 @@ export default function QuotePage() {
   const [saving, setSaving] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
   const [copied, setCopied] = useState(false);
+  // A business handed in via ?name=... (e.g. from the Places tab), waiting to be
+  // linked to a matching client once clients load.
+  const [pending, setPending] = useState(null);
 
   const load = useCallback(async () => {
     setLoadError('');
@@ -74,6 +77,37 @@ export default function QuotePage() {
     load();
   }, [load]);
   useRealtime(['products', 'clients', 'quotes'], load);
+
+  // Prefill from ?name=&phone=&contact= (deep link from the Places tab). Runs
+  // once on mount; matching to an existing client happens in the next effect.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const sp = new URLSearchParams(window.location.search);
+    const name = sp.get('name');
+    if (!name) return;
+    setBusinessName(name);
+    setPhone(sp.get('phone') || '');
+    setContactName(sp.get('contact') || '');
+    setPending({ name });
+  }, []);
+
+  // Once clients load, if the prefilled business matches one, link the quote to
+  // that client record (so it saves against them) — otherwise stay free-text.
+  useEffect(() => {
+    if (!pending) return;
+    const match = clients.find(
+      (c) =>
+        (c.business_name || '').trim().toLowerCase() ===
+        pending.name.trim().toLowerCase()
+    );
+    if (match) {
+      setClientId(match.id);
+      setBusinessName(match.business_name || pending.name);
+      setContactName((prev) => match.contact_name || prev);
+      setPhone((prev) => match.phone || prev);
+      setPending(null);
+    }
+  }, [pending, clients]);
 
   // Picking a client prefills business / contact / phone (all still editable).
   const pickClient = useCallback(

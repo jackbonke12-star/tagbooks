@@ -1,6 +1,7 @@
 'use client';
 
 import './places.css';
+import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useRealtime } from '../../lib/realtime';
@@ -140,6 +141,14 @@ function telHref(phone) {
 function googleFindHref(place) {
   const q = `${place.name || ''} ${place.city || ''} Calgary reviews`.trim();
   return `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+}
+
+// Deep link to the Quote builder, prefilled with this business (name + phone).
+function quoteHref(place) {
+  const params = new URLSearchParams();
+  params.set('name', place.name || '');
+  if (place.phone) params.set('phone', place.phone);
+  return `/quote?${params.toString()}`;
 }
 
 // ---- Follow-up helpers (all LOCAL date math; never toISOString) ----
@@ -566,6 +575,9 @@ export default function PlacesPage() {
                       >
                         Directions
                       </a>
+                      <Link className="fq-btn fq-quote" href={quoteHref(place)}>
+                        Quote
+                      </Link>
                       <button
                         type="button"
                         className="fq-btn"
@@ -759,6 +771,9 @@ export default function PlacesPage() {
                           Review link
                         </a>
                       ) : null}
+                      <Link className="place-quote" href={quoteHref(place)}>
+                        Quote
+                      </Link>
                     </span>
                   </div>
                   <div className="place-meta">
