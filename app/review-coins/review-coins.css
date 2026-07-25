@@ -1,0 +1,90 @@
+/* Google Review Coin options. Builds on products.css; only coin-specific bits. */
+
+.rc-card {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The image tile is a button so tapping the coin opens details. */
+.rc-shot-btn {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: inherit;
+}
+
+/* Soft neutral tile so the white coin reads against the beige panel. */
+.rc-shot {
+  position: relative;
+  background: #f4ecdb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rc-shot .prod-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 25mm size chip stamped on the corner of the shot. */
+.rc-size {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+/* "Option N" tag, shares the paper-stamp look of the models No. chip. */
+.rc-opt {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 1px 6px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.rc-opt-lg {
+  font-size: 13px;
+  padding: 2px 8px;
+}
+
+.rc-actions,
+.rc-detail-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.rc-btn {
+  flex: 1 1 auto;
+  min-height: 42px;
+}
+
+.rc-detail-actions {
+  margin-top: 18px;
+}
+
+/* Detail overlay hero: light tile so the coin's white face is framed. */
+.rc-gallery {
+  background: #f4ecdb;
+}

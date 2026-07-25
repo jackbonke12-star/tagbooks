@@ -13,6 +13,7 @@ const MORE_GROUPS = [
       { href: '/quote', label: 'Quote' },
       { href: '/places', label: 'Places' },
       { href: '/coins', label: 'Review Coins' },
+      { href: '/review-coins', label: 'Coin Designs' },
       { href: '/reviews', label: 'Reviews' },
     ],
   },
