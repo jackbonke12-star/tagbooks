@@ -489,6 +489,7 @@
   .dash > .goal-hero,
   .dash > .stat-grid,
   .dash > .flow-strip,
+  .dash > .reviews-headline,
   .dash > .products-callout {
     animation: dash-rise 0.34s ease both;
   }
@@ -797,4 +798,40 @@
   color: var(--muted);
   font-size: 16px;
   flex: 0 0 auto;
+}
+
+/* Reviews-driven proof banner — slim tappable card under the goal hero. */
+.reviews-headline {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: 1px solid var(--rule-strong);
+  border-left: 4px solid var(--green);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--ink);
+  text-decoration: none;
+}
+.reviews-headline:active {
+  background: var(--panel2);
+}
+.reviews-headline-num {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.reviews-headline-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.reviews-headline-cta {
+  color: var(--green);
+  font-weight: 700;
 }

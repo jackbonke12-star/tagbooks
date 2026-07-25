@@ -105,6 +105,8 @@ export default function DashboardPage() {
   const [toVisitCount, setToVisitCount] = useState(0);
   const [recurringActive, setRecurringActive] = useState([]);
   const [printWaiting, setPrintWaiting] = useState([]);
+  const [allClients, setAllClients] = useState([]);
+  const [reviewSnaps, setReviewSnaps] = useState([]);
 
   // Current LOCAL month, resolved once on mount.
   const now = useMemo(() => new Date(), []);
@@ -130,6 +132,8 @@ export default function DashboardPage() {
         inventoryRes,
         recurringRes,
         printWaitingRes,
+        allClientsRes,
+        reviewSnapsRes,
       ] = await Promise.all([
           supabase
             .from('sales')
@@ -185,6 +189,11 @@ export default function DashboardPage() {
             .select('*')
             .eq('status', 'waiting')
             .order('created_at', { ascending: true }),
+          // Reviews-driven headline: all client baselines + every snapshot.
+          supabase.from('clients').select('id,baseline_reviews'),
+          supabase
+            .from('review_snapshots')
+            .select('client_id,review_count,captured_at'),
         ]);
 
       const firstErr =
@@ -197,7 +206,9 @@ export default function DashboardPage() {
         toVisitRes.error ||
         inventoryRes.error ||
         recurringRes.error ||
-        printWaitingRes.error;
+        printWaitingRes.error ||
+        allClientsRes.error ||
+        reviewSnapsRes.error;
       if (firstErr) {
         setError(firstErr.message || 'Failed to load data.');
         setLoading(false);
@@ -212,6 +223,8 @@ export default function DashboardPage() {
       setToVisitCount(toVisitRes.count || 0);
       setRecurringActive(recurringRes.data || []);
       setPrintWaiting(printWaitingRes.data || []);
+      setAllClients(allClientsRes.data || []);
+      setReviewSnaps(reviewSnapsRes.data || []);
 
       const merged = [
         ...(feedSalesRes.data || []).map((s) => ({ ...s, kind: 'sale' })),
@@ -237,6 +250,7 @@ export default function DashboardPage() {
       'inventory',
       'recurring',
       'print_queue',
+      'review_snapshots',
     ],
     load
   );
@@ -255,6 +269,32 @@ export default function DashboardPage() {
     () => sum(recurringActive.map((r) => r.amount)),
     [recurringActive]
   );
+
+  // Reviews driven: per client, (latest snapshot count) - (baseline, or their
+  // earliest snapshot), summing only positive gains across all clients.
+  const reviewsDriven = useMemo(() => {
+    const byClient = new Map();
+    for (const s of reviewSnaps) {
+      if (s.review_count == null) continue;
+      const list = byClient.get(s.client_id) || [];
+      list.push(s);
+      byClient.set(s.client_id, list);
+    }
+    let total = 0;
+    for (const c of allClients) {
+      const snaps = (byClient.get(c.id) || [])
+        .slice()
+        .sort((a, b) => (a.captured_at < b.captured_at ? -1 : 1));
+      if (!snaps.length) continue;
+      const current = snaps[snaps.length - 1].review_count;
+      const baseline =
+        c.baseline_reviews != null ? c.baseline_reviews : snaps[0].review_count;
+      if (current == null || baseline == null) continue;
+      const gained = current - baseline;
+      if (gained > 0) total += gained;
+    }
+    return total;
+  }, [reviewSnaps, allClients]);
 
   const pct = GOAL > 0 ? (revenue / GOAL) * 100 : 0;
   const barWidth = Math.min(100, pct);
@@ -456,6 +496,26 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* REVIEWS DRIVEN — the proof number. Links to the per-client breakdown. */}
+      <Link className="reviews-headline" href="/reviews">
+        {reviewsDriven > 0 ? (
+          <>
+            <span className="reviews-headline-num green">
+              +{reviewsDriven.toLocaleString('en-US')}
+            </span>
+            <span className="reviews-headline-text">
+              Google reviews driven for your clients
+              <span className="reviews-headline-cta"> · see the breakdown</span>
+            </span>
+          </>
+        ) : (
+          <span className="reviews-headline-text">
+            Track the Google reviews you drive for clients
+            <span className="reviews-headline-cta"> · start tracking</span>
+          </span>
+        )}
+      </Link>
 
       {/* TODAY — the action center. One prioritized list of real next-actions,
           each with a one-tap action. Overdue first, then due today, then the
