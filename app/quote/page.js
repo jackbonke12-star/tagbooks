@@ -68,6 +68,9 @@ export default function QuotePage() {
   // A business handed in via ?name=... (e.g. from the Places tab), waiting to be
   // linked to a matching client once clients load.
   const [pending, setPending] = useState(null);
+  // Pull-from-clients typeahead: filters the already-loaded clients list.
+  const [clientSearch, setClientSearch] = useState('');
+  const [clientPickOpen, setClientPickOpen] = useState(false);
   // Auto follow-up: after saving, schedule a callback so the lead isn't dropped.
   const [followupOn, setFollowupOn] = useState(true);
   const [followDays, setFollowDays] = useState(3);
@@ -134,6 +137,8 @@ export default function QuotePage() {
   const pickClient = useCallback(
     (id) => {
       setClientId(id);
+      setClientSearch('');
+      setClientPickOpen(false);
       if (!id) return;
       const cl = clients.find((c) => c.id === id);
       if (cl) {
@@ -144,6 +149,20 @@ export default function QuotePage() {
     },
     [clients]
   );
+
+  // Typeahead matches on business name, contact, or phone (same haystack the
+  // Clients tab search uses). Empty term shows the first few so the list opens.
+  const clientMatches = useMemo(() => {
+    const q = clientSearch.trim().toLowerCase();
+    const rows = q
+      ? clients.filter((c) =>
+          `${c.business_name || ''} ${c.contact_name || ''} ${c.phone || ''}`
+            .toLowerCase()
+            .includes(q)
+        )
+      : clients;
+    return rows.slice(0, 8);
+  }, [clients, clientSearch]);
 
   const addProduct = useCallback((prod) => {
     setLines((ls) => [...ls, newLine(prod.name, prod.price == null ? 0 : prod.price)]);
@@ -349,21 +368,59 @@ export default function QuotePage() {
         <div className="card-label">
           <span className="q-step">1</span> Customer
         </div>
-        <div className="field">
-          <label className="label">Existing client</label>
-          <select
-            className="select"
-            value={clientId}
-            onChange={(e) => pickClient(e.target.value)}
-          >
-            <option value="">Walk-in / type below</option>
-            {clients.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.business_name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {clients.length ? (
+          <div className="field client-pull">
+            <label className="label">Pull from clients</label>
+            <input
+              type="text"
+              className="input"
+              value={clientSearch}
+              placeholder="Search a saved client to autofill"
+              autoComplete="off"
+              onChange={(e) => {
+                setClientSearch(e.target.value);
+                setClientPickOpen(true);
+              }}
+              onFocus={() => setClientPickOpen(true)}
+            />
+            {clientPickOpen && clientMatches.length ? (
+              <div className="client-pull-list">
+                {clientMatches.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className="client-pull-item"
+                    onClick={() => pickClient(c.id)}
+                  >
+                    <span className="client-pull-name">{c.business_name}</span>
+                    {c.contact_name || c.phone ? (
+                      <span className="client-pull-sub">
+                        {[c.contact_name, c.phone].filter(Boolean).join(' · ')}
+                      </span>
+                    ) : null}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            {clientId ? (
+              <p className="client-pull-note muted">
+                Autofilled from client — edit the fields below or{' '}
+                <button
+                  type="button"
+                  className="client-pull-undo"
+                  onClick={() => pickClient('')}
+                >
+                  clear
+                </button>
+                .
+              </p>
+            ) : null}
+          </div>
+        ) : (
+          <p className="q-hint">
+            No clients yet — enter the customer details below.
+          </p>
+        )}
         <div className="field">
           <label className="label">Business name</label>
           <input

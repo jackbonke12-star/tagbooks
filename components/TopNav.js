@@ -14,6 +14,7 @@ const MORE_GROUPS = [
       { href: '/places', label: 'Places' },
       { href: '/coins', label: 'Review Coins' },
       { href: '/review-coins', label: 'Coin Designs' },
+      { href: '/wifi', label: 'WiFi Gate' },
       { href: '/reviews', label: 'Reviews' },
     ],
   },

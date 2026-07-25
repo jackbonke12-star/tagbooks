@@ -167,6 +167,32 @@ html[data-theme='dark'] {
   flex: 1 1 auto;
 }
 
+/* The body is a button that opens the note in full. Reset button chrome so it
+   reads as text, but keep a pointer + subtle hover cue that it's tappable. */
+.note-open {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.note-open:hover .note-body,
+.note-open:focus-visible .note-body {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--rule-strong);
+}
+
+.note-open:focus-visible {
+  outline: none;
+}
+
 .note-body {
   font-size: 15px;
   color: var(--ink);
@@ -174,6 +200,11 @@ html[data-theme='dark'] {
   /* Long unbroken text must wrap, never force sideways scroll on a phone. */
   overflow-wrap: anywhere;
   word-break: break-word;
+  /* Preview only: clamp to a few lines; the overlay shows it in full. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
 }
 
 .note-done .note-body {
@@ -470,4 +501,114 @@ html[data-theme='dark'] {
 .note-file-name {
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+/* ---------- Full-note overlay ----------
+   Same bottom-sheet-on-mobile / centered-card-on-desktop shape as the
+   products + models detail overlays. */
+.note-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  background: rgba(20, 18, 13, 0.55);
+}
+
+@media (min-width: 700px) {
+  .note-overlay {
+    align-items: center;
+    padding: 24px;
+  }
+}
+
+.note-sheet {
+  position: relative;
+  width: 100%;
+  max-width: 620px;
+  max-height: 92dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius) var(--radius) 0 0;
+  box-shadow: 0 -6px 28px rgba(20, 18, 13, 0.4);
+  overflow: hidden;
+}
+
+@media (min-width: 700px) {
+  .note-sheet {
+    max-height: 88dvh;
+    border-radius: var(--radius);
+    box-shadow: 0 12px 40px rgba(20, 18, 13, 0.45);
+  }
+}
+
+.note-sheet-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  min-height: 40px;
+  min-width: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--panel2);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.note-sheet-close:active {
+  transform: translateY(1px);
+}
+
+/* The sheet body scrolls; the backdrop stays put. */
+.note-sheet-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.note-sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  /* Right pad leaves room for the Close button on narrow sheets. */
+  padding: 52px 18px 18px;
+}
+
+/* Full note text: no clamp, whitespace + line breaks preserved. */
+.note-full {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.note-copy-hint {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.note-sheet-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+@media (max-width: 640px) {
+  .note-sheet-actions .btn {
+    width: 100%;
+  }
 }

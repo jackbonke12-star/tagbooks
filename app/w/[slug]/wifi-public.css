@@ -1,0 +1,204 @@
+/* Public WiFi-gate landing. Self-contained look — its own centered card on a
+   warm-beige field, not the app chrome. Uses global tokens; no white. */
+
+.wg-shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 24px 20px calc(24px + env(safe-area-inset-bottom));
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--mono);
+}
+
+.wg-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--rule-strong);
+  border-radius: var(--radius);
+  padding: 28px 24px 30px;
+  text-align: center;
+  box-shadow: 0 8px 28px rgba(28, 26, 21, 0.12);
+}
+
+.wg-loading {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* ---- Header ---- */
+
+.wg-business {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.wg-headline {
+  font-size: 21px;
+  line-height: 1.3;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.wg-sub {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin: 0 0 22px;
+}
+
+/* ---- Primary action ---- */
+
+.wg-btn {
+  display: block;
+  width: 100%;
+  min-height: 54px;
+  padding: 0 18px;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--green);
+  color: var(--bg);
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: filter 0.12s ease;
+}
+
+.wg-btn:hover {
+  filter: brightness(1.06);
+}
+
+.wg-btn:active {
+  filter: brightness(0.96);
+}
+
+/* ---- Revealed state ---- */
+
+.wg-thanks {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--green);
+  margin-bottom: 18px;
+}
+
+.wg-creds {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+
+.wg-cred {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.wg-cred-label {
+  flex: 0 0 78px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.wg-cred-value {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 17px;
+  font-weight: 700;
+  word-break: break-all;
+}
+
+.wg-cred-pass {
+  color: var(--green);
+}
+
+.wg-copy {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--panel);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.wg-copy:hover {
+  color: var(--ink);
+  border-color: var(--rule-strong);
+}
+
+.wg-copy.copied {
+  color: var(--green);
+  border-color: var(--green);
+}
+
+.wg-note {
+  margin: 18px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.wg-review-again {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: underline;
+}
+
+.wg-review-again:hover {
+  color: var(--ink);
+}
+
+/* ---- Inactive / not-found ---- */
+
+.wg-brand {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.wg-inactive {
+  text-align: center;
+}
+
+.wg-inactive-line {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink);
+  margin: 0;
+}
+
+/* ---- Footer ---- */
+
+.wg-foot {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}

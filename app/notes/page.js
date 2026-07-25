@@ -81,6 +81,8 @@ export default function NotesPage() {
   const [loadError, setLoadError] = useState('');
   const [query, setQuery] = useState('');
   const [colorFilter, setColorFilter] = useState('all');
+  // Which note is open in the full-text overlay (id), or null when closed.
+  const [openId, setOpenId] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -173,6 +175,13 @@ export default function NotesPage() {
     });
   }, [notes, query, colorFilter]);
 
+  // The note currently open in the overlay (or null). Pulled from the live
+  // list so realtime edits to an open note stay in sync.
+  const openNote = useMemo(
+    () => notes.find((n) => n.id === openId) || null,
+    [notes, openId]
+  );
+
   return (
     <div className="notes">
       <NoteForm onSaved={load} onError={setLoadError} />
@@ -247,7 +256,17 @@ export default function NotesPage() {
                   <span className="note-check-box" aria-hidden="true" />
                 </button>
                 <div className="note-main">
-                  <span className="note-body">{note.body}</span>
+                  {/* Tap the body to open the note in full. Images and the
+                      byline sit outside the button so image links still work. */}
+                  <button
+                    type="button"
+                    className="note-open"
+                    onClick={() => setOpenId(note.id)}
+                    aria-label="Open note"
+                    title="Open note"
+                  >
+                    <span className="note-body">{note.body}</span>
+                  </button>
                   <NoteImages images={note.images} />
                   <span className="note-by">
                     by {note.author || 'Someone'}
@@ -280,6 +299,10 @@ export default function NotesPage() {
           </div>
         )}
       </div>
+
+      {openNote ? (
+        <NoteDetail note={openNote} onClose={() => setOpenId(null)} />
+      ) : null}
     </div>
   );
 }
@@ -311,6 +334,100 @@ function NoteImages({ images }) {
           <img src={im.url} alt={im.name || 'note image'} loading="lazy" />
         </a>
       ))}
+    </div>
+  );
+}
+
+/* ---------------- Note detail overlay ----------------
+   Opens a note in full: untruncated body (pre-wrap), any images, and a Copy
+   button. Mirrors the products/models overlay: Escape + click-outside close,
+   body scroll lock while open. */
+
+function NoteDetail({ note, onClose }) {
+  const [copied, setCopied] = useState(false);
+  const [copyErr, setCopyErr] = useState(false);
+
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
+
+  // Copy the full note text. Fall back to a manual-select hint if the
+  // clipboard API is unavailable (older / non-secure contexts).
+  async function copy() {
+    const text = note.body || '';
+    try {
+      if (!navigator.clipboard) throw new Error('No clipboard');
+      await navigator.clipboard.writeText(text);
+      setCopyErr(false);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopyErr(true);
+      setTimeout(() => setCopyErr(false), 3000);
+    }
+  }
+
+  return (
+    <div
+      className="note-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Note"
+      onClick={onClose}
+    >
+      <div className="note-sheet" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          className="note-sheet-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          Close
+        </button>
+
+        <div className="note-sheet-scroll">
+          <div className="note-sheet-body">
+            {/* Full text, whitespace + line breaks preserved. Selectable so a
+                manual copy is always possible even if the button fails. */}
+            <p className="note-full">{note.body}</p>
+
+            <NoteImages images={note.images} />
+
+            <span className="note-by">
+              by {note.author || 'Someone'}
+              {note.created_at
+                ? ` · ${shortDate(dateOnly(note.created_at))}`
+                : ''}
+            </span>
+
+            {copyErr ? (
+              <div className="muted note-copy-hint">
+                Couldn&apos;t copy automatically — select the text above and
+                copy it.
+              </div>
+            ) : null}
+
+            <div className="note-sheet-actions">
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={copy}
+              >
+                {copied ? 'Copied' : 'Copy'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

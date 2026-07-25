@@ -4,6 +4,7 @@ import './money.css';
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useRealtime } from '../../lib/realtime';
+import { consumeForSale } from '../../lib/inventory';
 import {
   PRODUCTS,
   CATEGORIES,
@@ -13,7 +14,9 @@ import {
   money,
   localToday,
   monthRange,
+  monthLabel,
   shortDate,
+  itemLabel,
   isKit,
   needsLogoStand,
   ITEMS,
@@ -31,8 +34,8 @@ export default function MoneyPage() {
   // Which add form is showing.
   const [mode, setMode] = useState('sale'); // 'sale' | 'expense'
 
-  // Which view of the month is showing.
-  const [view, setView] = useState('entries'); // 'entries' | 'breakdown' | 'calendar'
+  // Which view of the month is showing. Calendar is the default landing view.
+  const [view, setView] = useState('calendar'); // 'entries' | 'breakdown' | 'calendar'
 
   // Calendar: currently selected day (YYYY-MM-DD) or null for the whole month.
   const [selectedDay, setSelectedDay] = useState(null);
@@ -40,6 +43,10 @@ export default function MoneyPage() {
   // Data.
   const [sales, setSales] = useState([]);
   const [expenses, setExpenses] = useState([]);
+  // Incoming inventory orders whose expected arrival lands in the selected
+  // month. These are queried by arrival_date (not the purchase date), so an
+  // order bought last month but arriving this month still shows on its day.
+  const [incoming, setIncoming] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
 
@@ -49,7 +56,7 @@ export default function MoneyPage() {
     setLoading(true);
     setLoadError('');
     const { first, last } = monthRange(year, monthIndex);
-    const [salesRes, expensesRes] = await Promise.all([
+    const [salesRes, expensesRes, incomingRes] = await Promise.all([
       supabase
         .from('sales')
         .select('*')
@@ -64,8 +71,17 @@ export default function MoneyPage() {
         .lte('date', last)
         .order('date', { ascending: false })
         .order('created_at', { ascending: false }),
+      // Incoming inventory orders arriving this month (by arrival_date). Only
+      // orders not yet received are treated as "incoming".
+      supabase
+        .from('expenses')
+        .select('*')
+        .not('arrival_date', 'is', null)
+        .gte('arrival_date', first)
+        .lte('arrival_date', last)
+        .order('arrival_date', { ascending: true }),
     ]);
-    const err = salesRes.error || expensesRes.error;
+    const err = salesRes.error || expensesRes.error || incomingRes.error;
     if (err) {
       setLoadError(err.message || 'Failed to load entries.');
       setLoading(false);
@@ -73,6 +89,10 @@ export default function MoneyPage() {
     }
     setSales(salesRes.data || []);
     setExpenses(expensesRes.data || []);
+    // Keep only genuine inventory orders still in transit (not received).
+    setIncoming(
+      (incomingRes.data || []).filter((e) => e.inv_item && !e.received)
+    );
     setLoading(false);
   }, [year, monthIndex]);
 
@@ -159,12 +179,39 @@ export default function MoneyPage() {
     return rows.filter((r) => r.date === selectedDay);
   }, [rows, selectedDay]);
 
+  // Incoming orders limited to the selected day (or all of them when the whole
+  // month is showing), earliest arrival first.
+  const dayIncoming = useMemo(() => {
+    const list = selectedDay
+      ? incoming.filter((o) => o.arrival_date === selectedDay)
+      : incoming;
+    return [...list].sort((a, b) =>
+      (a.arrival_date || '') < (b.arrival_date || '') ? -1 : 1
+    );
+  }, [incoming, selectedDay]);
+
   function onMonthChange(y, m) {
     setEditing(null);
     setSelectedDay(null);
     setYear(y);
     setMonthIndex(m);
   }
+
+  // Shift the selected month by a relative number of months (year rolls over).
+  function shiftMonth(delta) {
+    const d = new Date(year, monthIndex + delta, 1);
+    onMonthChange(d.getFullYear(), d.getMonth());
+  }
+
+  // Jump back to the real current month.
+  function goToday() {
+    const d = new Date();
+    onMonthChange(d.getFullYear(), d.getMonth());
+  }
+
+  // True when the selected month is the real current month (hides "Today").
+  const isCurrentMonth =
+    year === now.getFullYear() && monthIndex === now.getMonth();
 
   function onModeChange(next) {
     // Switching the segmented form abandons an in-progress edit of the other kind.
@@ -336,7 +383,7 @@ export default function MoneyPage() {
           ? 'Every sale and expense this month, newest first.'
           : view === 'breakdown'
           ? 'Totals grouped by product and category, with the bottom-line net.'
-          : 'Tap any day to see just that day’s entries.'}
+          : 'Tap any day to see that day’s entries. Incoming orders show on their arrival day.'}
       </p>
 
       {/* ENTRIES view: the existing list */}
@@ -413,6 +460,42 @@ export default function MoneyPage() {
       {view === 'calendar' ? (
         <div className="card">
           <div className="card-label">Calendar</div>
+
+          {/* Calendar-local month navigation: prev / current label / next,
+              with a quick jump back to the real current month. */}
+          <div className="cal-month-nav">
+            <button
+              type="button"
+              className="cal-month-btn"
+              aria-label="Previous month"
+              onClick={() => shiftMonth(-1)}
+            >
+              {'‹'}
+            </button>
+            <div className="cal-month-center">
+              <span className="cal-month-label">
+                {monthLabel(year, monthIndex)}
+              </span>
+              {isCurrentMonth ? null : (
+                <button
+                  type="button"
+                  className="cal-month-today"
+                  onClick={goToday}
+                >
+                  Today
+                </button>
+              )}
+            </div>
+            <button
+              type="button"
+              className="cal-month-btn"
+              aria-label="Next month"
+              onClick={() => shiftMonth(1)}
+            >
+              {'›'}
+            </button>
+          </div>
+
           {loadError ? <div className="form-error">{loadError}</div> : null}
           {loading ? (
             <div className="muted load-line">Loading…</div>
@@ -426,6 +509,43 @@ export default function MoneyPage() {
                 selectedDay={selectedDay}
                 onSelectDay={setSelectedDay}
               />
+
+              {/* Incoming inventory orders arriving this month, shown as
+                  distinct pills on their arrival day. Tapping a pill selects
+                  that day so its entries + order show in the panel below. */}
+              {incoming.length > 0 ? (
+                <div className="cal-incoming">
+                  <div className="cal-incoming-head">
+                    Incoming orders this month
+                  </div>
+                  <div className="cal-incoming-list">
+                    {incoming.map((o) => (
+                      <button
+                        key={`inc-${o.id}`}
+                        type="button"
+                        className={`cal-incoming-pill${
+                          selectedDay === o.arrival_date ? ' on' : ''
+                        }`}
+                        onClick={() =>
+                          setSelectedDay(
+                            selectedDay === o.arrival_date
+                              ? null
+                              : o.arrival_date
+                          )
+                        }
+                      >
+                        <span className="cal-incoming-date">
+                          {shortDate(o.arrival_date)}
+                        </span>
+                        <span className="cal-incoming-item">
+                          Incoming: {itemLabel(o.inv_item)}
+                          {o.inv_qty ? ` ×${o.inv_qty}` : ''}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
 
               <div className="cal-day-panel">
                 <div className="cal-day-panel-head">
@@ -442,13 +562,27 @@ export default function MoneyPage() {
                     </button>
                   ) : null}
                 </div>
-                {dayRows.length === 0 ? (
+                {dayIncoming.length > 0 ? (
+                  <div className="cal-day-incoming">
+                    {dayIncoming.map((o) => (
+                      <div key={`day-inc-${o.id}`} className="cal-incoming-line">
+                        <span className="cal-incoming-tag">Incoming</span>
+                        <span className="cal-incoming-line-text">
+                          {itemLabel(o.inv_item)}
+                          {o.inv_qty ? ` ×${o.inv_qty}` : ''}
+                          {selectedDay ? '' : ` — ${shortDate(o.arrival_date)}`}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                {dayRows.length === 0 && dayIncoming.length === 0 ? (
                   <div className="muted load-line">
                     {selectedDay
                       ? 'Nothing on this day. Tap another day above.'
                       : 'Nothing logged this month yet.'}
                   </div>
-                ) : (
+                ) : dayRows.length === 0 ? null : (
                   <div className="entry-list">
                     {dayRows.map((entry) => (
                       <EntryRow
@@ -656,7 +790,17 @@ async function runSaleAutoEffects({
   amount,
   type,
   date,
+  saleId,
 }) {
+  // Pull the materials this product consumes (filament, blank tags, review
+  // stickers) from the Inventory tab's stock. Best-effort and self-contained:
+  // consumeForSale never throws, so it can't block the committed sale.
+  try {
+    await consumeForSale(supabase, { id: saleId || null, product, qty: 1 });
+  } catch {
+    /* non-fatal */
+  }
+
   // Kit sold -> consume 3 cards and 1 stand from inventory (never below 0).
   if (isKit(product)) {
     try {
@@ -915,7 +1059,8 @@ function SaleForm({ editing, onSaved, onCancelEdit }) {
     if (isEdit) {
       res = await supabase.from('sales').update(payload).eq('id', editing.id);
     } else {
-      res = await supabase.from('sales').insert(payload);
+      // .select() the new row so we can tag stock movements with its id.
+      res = await supabase.from('sales').insert(payload).select().maybeSingle();
     }
 
     setSaving(false);
@@ -946,6 +1091,7 @@ function SaleForm({ editing, onSaved, onCancelEdit }) {
         amount: amt,
         type,
         date,
+        saleId: res.data?.id || null,
       });
     }
 

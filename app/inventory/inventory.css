@@ -170,97 +170,70 @@
   }
 }
 
-/* Print queue. */
-.pq-list {
-  display: flex;
-  flex-direction: column;
-  margin-top: 4px;
-}
-
-.pq-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.pq-row:last-child {
-  border-bottom: none;
-}
-
-.pq-row.pq-done {
-  opacity: 0.5;
-}
-
-.pq-main {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.pq-title {
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.pq-sub {
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.pq-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-/* Status chip as tap-to-advance rubber stamp. */
-.pq-status {
+/* Material row sub-line: qty + unit, reorder + delete links. */
+.inv-sub {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  /* Reserve enough width for the longest label (Printing) so tapping through
-     Waiting -> Printing -> Done never resizes the stamp or shifts the row. */
-  min-width: 74px;
-  padding: 4px 11px;
-  border-radius: 3px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  border: 2px solid currentColor;
-  background: transparent;
+  gap: 10px;
+  font-size: 13px;
   color: var(--muted);
-  cursor: pointer;
-  transform: rotate(-3deg);
+  font-variant-numeric: tabular-nums;
 }
 
-.pq-status-waiting {
-  color: #9a6b16; /* amber ink */
-  transform: rotate(2deg);
+/* Low-stock highlight for a material row/roll. */
+.inv-low .inv-name,
+.inv-low .fil-name {
+  color: #9a6b16;
 }
 
-.pq-status-printing {
-  color: #35506b; /* stamp-blue ink */
+.inv-low-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #9a6b16;
+  border: 1px solid #9a6b16;
+  vertical-align: middle;
 }
 
-.pq-status-done {
+.inv-reorder-inline {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--green-dim);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.inv-reorder-inline:active {
   color: var(--green);
-  transform: rotate(1deg);
 }
 
-.pq-del {
-  min-height: 40px;
-  padding: 0 12px;
-  font-size: 14px;
+/* Small inline delete link (material + filament rows). */
+.inv-del-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--red);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.inv-del-link:active {
+  opacity: 0.75;
 }
 
-/* Add print job form. */
-.pq-form {
+/* Add-material / add-roll toggle + form. */
+.inv-add-toggle {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.inv-form {
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -269,16 +242,130 @@
   border-top: 1px solid var(--line);
 }
 
-.pq-form .field {
+.inv-form .field {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
+.inv-form .form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.inv-color {
+  height: 44px;
+  padding: 2px;
+}
+
 @media (max-width: 640px) {
-  .pq-form .grid2 {
+  .inv-form .grid2 {
     grid-template-columns: 1fr;
   }
+}
+
+/* Filament section. */
+.fil-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fil-sync {
+  flex-shrink: 0;
+  min-height: 40px;
+  padding: 0 12px;
+  font-size: 13px;
+  opacity: 0.6;
+}
+.fil-sync:disabled {
+  cursor: not-allowed;
+}
+
+.fil-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.fil-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.fil-row:last-child {
+  border-bottom: none;
+}
+
+.fil-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fil-swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--rule-strong);
+  flex-shrink: 0;
+}
+
+.fil-id {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.fil-name {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.fil-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.fil-del {
+  flex-shrink: 0;
+}
+
+/* Grams-remaining progress bar. */
+.fil-bar {
+  height: 10px;
+  border-radius: 5px;
+  background: var(--panel);
+  border: 1px solid var(--rule-strong);
+  overflow: hidden;
+}
+
+.fil-bar-fill {
+  height: 100%;
+  background: var(--green);
+  transition: width 0.2s ease;
+}
+
+.fil-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fil-grams {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Incoming stock orders (from expenses). */
@@ -327,4 +414,10 @@
 .inv-in-recv {
   white-space: nowrap;
   min-height: 44px;
+}
+.inv-in-edit {
+  white-space: nowrap;
+  min-height: 44px;
+  padding: 0 12px;
+  font-size: 14px;
 }
