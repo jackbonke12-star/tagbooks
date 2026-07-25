@@ -1,0 +1,312 @@
+/* ---------- Reviews page ----------
+   Before/after Google-review tracker. Paper-ledger theme, tokens only (never
+   hardcode white), light + dark, mobile-first. No deps, no emojis (the star and
+   arrow are plain glyphs, not an icon font). */
+
+.reviews {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.reviews .page-head {
+  margin-bottom: 0;
+}
+
+/* Error line (shared shape with the other pages). */
+.reviews .form-error {
+  background: rgba(163, 51, 34, 0.08);
+  border-left: 3px solid var(--red);
+  color: var(--red);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+@media (max-width: 640px) {
+  .reviews {
+    gap: 12px;
+  }
+  .reviews > .card {
+    margin-bottom: 0;
+  }
+}
+
+/* ---------- Headline ---------- */
+
+.reviews-headline {
+  /* Reserve a stable footprint so the loading -> loaded swap doesn't lurch. */
+  min-height: 120px;
+}
+
+.reviews-headline-line {
+  margin: 4px 0 0;
+  font-size: 18px;
+  line-height: 1.35;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.reviews-headline-num {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.reviews-headline-empty {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.reviews-refresh {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 14px;
+}
+
+.reviews-refresh-hint {
+  font-size: 12px;
+  line-height: 1.4;
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.reviews-refresh-note {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  background: var(--panel2);
+  border-left: 3px solid var(--rule-strong);
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Empty state ---------- */
+
+.reviews-empty {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* ---------- Client cards ---------- */
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.review-card {
+  margin-bottom: 0;
+}
+
+.review-card-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  margin-bottom: 12px;
+}
+
+.review-name {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  min-width: 0;
+}
+
+/* Stage chip — self-contained (does not depend on clients.css). Rubber-stamp
+   outline in the stage color; colors mirror the Clients page. */
+.review-chip {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: 2px 9px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 2px solid currentColor;
+  background: transparent;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.review-chip.chip-lead {
+  color: var(--muted);
+}
+.review-chip.chip-pitched {
+  color: var(--rule-strong);
+}
+.review-chip.chip-sold {
+  color: var(--green);
+}
+.review-chip.chip-care_plan {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--panel);
+}
+
+/* Before -> Now row */
+.review-track {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.review-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.review-stat-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.review-stat-num {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.review-arrow {
+  font-size: 20px;
+  line-height: 1;
+  color: var(--muted);
+  padding-bottom: 3px;
+}
+
+.review-gained {
+  margin-left: auto;
+  padding: 3px 10px;
+  border-radius: 3px;
+  border: 2px solid currentColor;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Meta line: rating + dates */
+.review-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 10px;
+  font-size: 12px;
+}
+
+.review-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--green);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.review-star {
+  color: var(--green);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.review-meta-item {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Editors ---------- */
+
+.review-editors {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+@media (max-width: 380px) {
+  .review-editors {
+    grid-template-columns: 1fr;
+  }
+}
+
+.review-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.review-editor-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.review-editor-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  min-width: 0;
+}
+
+/* Compact 16px number input (avoids iOS zoom). */
+.review-num {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  font-size: 16px;
+}
+
+.review-log {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+.review-editor-error {
+  grid-column: 1 / -1;
+  margin-top: 2px;
+}
+
+/* ---------- Entrance (opt-in, gated to no reduced-motion) ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .review-card {
+    animation: reviews-rise 0.22s ease both;
+  }
+}
+
+@keyframes reviews-rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
