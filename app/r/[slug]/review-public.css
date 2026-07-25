@@ -14,6 +14,10 @@
   position: relative;
   z-index: 1;
   min-height: 100dvh;
+  width: 100%;
+  /* Clip the decorative tear-line notches (which bleed a few px past the card)
+     so they can't widen the scroll area and shift the 100%-width band/dock. */
+  overflow-x: hidden;
   background: var(--rt-bg);
   color: var(--rt-ink);
   font-family: var(--rt-font);
