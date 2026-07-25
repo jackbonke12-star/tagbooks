@@ -18,6 +18,7 @@ const OPTIONS = [
       'The all-rounder. Multicolor Google “G”, a row of five gold stars, bold “Leave a Review”, and a phone-tap icon with contactless waves so customers know to tap it. Reads as official Google at a glance.',
     image: '/review-coins/option-1.png',
     pdf: '/review-coins/option-1.pdf',
+    sticker: '/review-coins/classic-tap-sticker.png',
   },
   {
     id: 2,
@@ -212,6 +213,15 @@ function CoinDetail({ option, onClose }) {
                 >
                   Open PDF
                 </a>
+                {option.sticker ? (
+                  <a
+                    href={option.sticker}
+                    download
+                    className="btn mdl-cta-alt"
+                  >
+                    Sticker PNG (transparent)
+                  </a>
+                ) : null}
               </div>
               <p className="mdl-actions-hint muted">
                 The PDF shows the coin with a <strong>⌀ 25&nbsp;mm</strong>{' '}
