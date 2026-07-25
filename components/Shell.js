@@ -8,10 +8,11 @@ import NotesBubble from './NotesBubble';
 export default function Shell({ children }) {
   const pathname = usePathname();
 
-  // Public WiFi-gate pages (/w/<slug>) are customer-facing: render them bare,
-  // with no PIN and no app chrome, so a customer can open the link and get the
-  // WiFi without hitting our staff PIN.
-  if (pathname && pathname.startsWith('/w/')) {
+  // Public customer-facing pages render bare — no PIN, no app chrome — so a
+  // customer who taps an NFC coin lands straight on the page:
+  //   /w/<slug>  WiFi-gate pages
+  //   /r/<slug>  Review Tap pages
+  if (pathname && (pathname.startsWith('/w/') || pathname.startsWith('/r/'))) {
     return children;
   }
 

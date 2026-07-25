@@ -1,0 +1,454 @@
+.rt-shell {
+  --rt-bg:#f6f5f1; --rt-card:#ffffff; --rt-ink:#14181d; --rt-muted:#6b7280;
+  --rt-line:#e6e4dd; --rt-accent:#2456e6; --rt-accent-ink:#ffffff; --rt-star:#fbbc04; --rt-danger:#b3402a;
+  --rt-r-sm:10px; --rt-r-md:16px; --rt-r-lg:24px; --rt-r-pill:999px;
+  --rt-sp-1:4px; --rt-sp-2:8px; --rt-sp-3:12px; --rt-sp-4:16px; --rt-sp-5:24px; --rt-sp-6:32px; --rt-sp-7:48px;
+  --rt-shadow-card:0 10px 30px rgba(20,24,29,0.10); --rt-shadow-dock:0 -6px 24px rgba(20,24,29,0.08);
+  --rt-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+
+/* Shell — opaque so it fully covers the app-wide fixed paper-grain overlay
+   painted by body::before in globals.css. z-index:1 lifts it above that layer.
+   padding-bottom reserves room for the fixed dock so it never hides content. */
+.rt-shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100dvh;
+  background: var(--rt-bg);
+  color: var(--rt-ink);
+  font-family: var(--rt-font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  padding-bottom: 120px;
+}
+
+.rt-shell *,
+.rt-shell *::before,
+.rt-shell *::after {
+  box-sizing: border-box;
+}
+
+/* ---------- 1. Accent band ---------- */
+.rt-band {
+  background: var(--rt-accent);
+  color: var(--rt-accent-ink);
+  padding: var(--rt-sp-6) var(--rt-sp-5) calc(var(--rt-sp-6) + 24px);
+  text-align: center;
+}
+
+.rt-logo {
+  display: block;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--rt-sp-3);
+  border-radius: var(--rt-r-sm);
+  background: #fff;
+  object-fit: cover;
+  padding: 4px;
+}
+
+.rt-monogram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--rt-sp-3);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--rt-accent);
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.rt-name {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.rt-tagline {
+  margin: var(--rt-sp-1) 0 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ---------- 2. Pass card ---------- */
+.rt-card {
+  position: relative;
+  z-index: 2;
+  max-width: 430px;
+  margin: -24px auto 0;
+  padding: var(--rt-sp-6) var(--rt-sp-5) var(--rt-sp-5);
+  background: var(--rt-card);
+  border-radius: var(--rt-r-lg);
+  box-shadow: var(--rt-shadow-card);
+}
+
+.rt-note {
+  margin: 0 0 var(--rt-sp-4);
+  font-size: 17px;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--rt-ink);
+  overflow-wrap: anywhere;
+}
+
+/* Stars — a single link to Google (compliance: shown to everyone). */
+.rt-stars {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--rt-sp-2);
+  margin: 0 auto var(--rt-sp-3);
+  color: var(--rt-star);
+}
+
+.rt-star {
+  width: 34px;
+  height: 34px;
+  color: var(--rt-star);
+  /* Start dimmed; keyframes fill them in sequentially (gated below). */
+  opacity: 0.28;
+}
+
+.rt-proof {
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--rt-muted);
+}
+
+/* ---------- 3. Perforated tear line ---------- */
+.rt-perf {
+  position: relative;
+  height: 1px;
+  margin: var(--rt-sp-5) calc(-1 * var(--rt-sp-5));
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--rt-line) 0,
+    var(--rt-line) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+}
+
+/* Two punched half-circle notches at the card edges. */
+.rt-perf::before,
+.rt-perf::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  transform: translateY(-50%);
+  background: var(--rt-bg);
+  border-radius: 50%;
+}
+
+.rt-perf::before {
+  left: -10px;
+}
+
+.rt-perf::after {
+  right: -10px;
+}
+
+/* ---------- 4. Hub links ---------- */
+.rt-hub {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rt-sp-2);
+}
+
+.rt-hub-row {
+  display: flex;
+  align-items: center;
+  gap: var(--rt-sp-3);
+  min-height: 52px;
+  padding: 0 var(--rt-sp-4);
+  background: var(--rt-card);
+  border: 1px solid var(--rt-line);
+  border-radius: var(--rt-r-md);
+  color: var(--rt-ink);
+  transition: transform 80ms ease, background 120ms ease;
+}
+
+.rt-hub-row:active {
+  transform: scale(0.98);
+  background: var(--rt-bg);
+}
+
+.rt-hub-ic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--rt-accent);
+  flex-shrink: 0;
+}
+
+.rt-hub-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.rt-hub-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rt-hub-chev {
+  display: flex;
+  align-items: center;
+  color: var(--rt-muted);
+  flex-shrink: 0;
+}
+
+.rt-chev {
+  width: 18px;
+  height: 18px;
+}
+
+/* ---------- 5. Hours ---------- */
+.rt-hours {
+  margin-top: var(--rt-sp-4);
+  border-top: 1px solid var(--rt-line);
+  padding-top: var(--rt-sp-3);
+}
+
+.rt-hours-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--rt-sp-2) 0;
+  background: none;
+  border: 0;
+  color: var(--rt-ink);
+  font-family: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.rt-hours-caret {
+  color: var(--rt-muted);
+  transition: transform 150ms ease;
+}
+
+.rt-hours-caret.open {
+  transform: rotate(180deg);
+}
+
+.rt-hours-week {
+  list-style: none;
+  margin: var(--rt-sp-2) 0 0;
+  padding: 0;
+}
+
+.rt-hours-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--rt-sp-1) 0;
+  font-size: 14px;
+  color: var(--rt-muted);
+}
+
+.rt-hours-row.today {
+  color: var(--rt-ink);
+  font-weight: 700;
+}
+
+/* ---------- 6. Footer ---------- */
+.rt-foot {
+  margin: var(--rt-sp-5) 0 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--rt-muted);
+}
+
+/* ---------- 7. Fixed dock ---------- */
+.rt-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  padding: var(--rt-sp-3) var(--rt-sp-4)
+    calc(var(--rt-sp-3) + env(safe-area-inset-bottom, 0px));
+  background: #fff;
+  border-top: 1px solid var(--rt-line);
+  box-shadow: var(--rt-shadow-dock);
+}
+
+.rt-dock-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 56px;
+  border-radius: var(--rt-r-md);
+  background: var(--rt-accent);
+  color: var(--rt-accent-ink);
+  font-size: 17px;
+  font-weight: 700;
+  transition: transform 80ms ease, opacity 120ms ease;
+}
+
+.rt-dock-btn:active {
+  transform: scale(0.98);
+}
+
+.rt-priv-link {
+  display: block;
+  width: 100%;
+  margin-top: var(--rt-sp-2);
+  padding: var(--rt-sp-2) 0 0;
+  background: none;
+  border: 0;
+  color: var(--rt-muted);
+  font-family: inherit;
+  font-size: 13px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.rt-priv-link:active {
+  color: var(--rt-ink);
+}
+
+.rt-priv-form {
+  margin-top: var(--rt-sp-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--rt-sp-2);
+}
+
+.rt-priv-text,
+.rt-priv-contact {
+  width: 100%;
+  padding: var(--rt-sp-3);
+  background: var(--rt-bg);
+  border: 1px solid var(--rt-line);
+  border-radius: var(--rt-r-sm);
+  color: var(--rt-ink);
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+  outline: none;
+  resize: vertical;
+}
+
+.rt-priv-text:focus,
+.rt-priv-contact:focus {
+  border-color: var(--rt-accent);
+}
+
+.rt-priv-contact {
+  resize: none;
+}
+
+.rt-priv-actions {
+  display: flex;
+  gap: var(--rt-sp-2);
+  justify-content: flex-end;
+}
+
+.rt-priv-cancel,
+.rt-priv-send {
+  min-height: 44px;
+  padding: 0 var(--rt-sp-4);
+  border-radius: var(--rt-r-sm);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rt-priv-cancel {
+  background: none;
+  border: 1px solid var(--rt-line);
+  color: var(--rt-muted);
+}
+
+.rt-priv-send {
+  background: var(--rt-ink);
+  border: 1px solid var(--rt-ink);
+  color: #fff;
+}
+
+.rt-priv-send:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.rt-priv-sent {
+  margin: var(--rt-sp-2) 0 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--rt-accent);
+}
+
+/* ---------- Motion (behind no-preference; hard reduce fallback below) ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .rt-card {
+    animation: rt-card-in 350ms ease-out both;
+  }
+
+  @keyframes rt-card-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Stars fill sequentially (~90ms stagger). */
+  .rt-star {
+    animation: rt-star-fill 240ms ease-out both;
+  }
+  .rt-star-0 { animation-delay: 260ms; }
+  .rt-star-1 { animation-delay: 350ms; }
+  .rt-star-2 { animation-delay: 440ms; }
+  .rt-star-3 { animation-delay: 530ms; }
+  .rt-star-4 { animation-delay: 620ms; }
+
+  @keyframes rt-star-fill {
+    from {
+      opacity: 0.28;
+      transform: scale(0.85);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
+/* Hard reduce fallback: no motion, stars still fully visible. */
+@media (prefers-reduced-motion: reduce) {
+  .rt-card {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .rt-star {
+    animation: none;
+    opacity: 1;
+  }
+}
